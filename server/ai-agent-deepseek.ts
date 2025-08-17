@@ -11,7 +11,8 @@ import type {
   InsertCommunication,
   InsertAISession,
   InsertAIMessage,
-  InsertAppointment
+  InsertAppointment,
+  InsertPatient
 } from "@shared/schema";
 
 interface DeepSeekConfig {
@@ -32,6 +33,7 @@ interface EligibilityResponse {
 
 interface SchedulingContext {
   patientId?: string;
+  patientName?: string;
   serviceType: string;
   specialty?: string;
   urgency: 'routine' | 'urgent' | 'stat';
@@ -52,8 +54,9 @@ export class HealthcareAIAgent {
   private deepseek: OpenAI;
   private sessionContext: Map<string, SchedulingContext> = new Map();
   private auditTrail: Map<string, WorkflowStep[]> = new Map();
+  private storage: any;
 
-  constructor() {
+  constructor(storage?: any) {
     const config: DeepSeekConfig = {
       apiKey: process.env.DEEPSEEK_API_KEY || '',
       baseURL: 'https://api.deepseek.com/v1',
@@ -68,6 +71,12 @@ export class HealthcareAIAgent {
       apiKey: config.apiKey,
       baseURL: config.baseURL,
     });
+    
+    this.storage = storage;
+  }
+  
+  setStorage(storage: any) {
+    this.storage = storage;
   }
 
   private addAuditStep(sessionId: string, step: string, status: WorkflowStep['status'], data?: any, error?: string) {
@@ -157,10 +166,10 @@ export class HealthcareAIAgent {
         providerId: "PROV001",
         providerName: "Dr. Sarah Johnson",
         locationId: "LOC001", 
-        locationName: "Main Campus Cardiology",
-        serviceType: "cardiology",
-        specialtyRequired: "cardiology",
-        date: "2024-08-20" as any,
+        locationName: "Main Campus",
+        serviceType: "Check up",
+        specialtyRequired: "general",
+        date: "2024-08-19" as any,
         startTime: "09:00",
         endTime: "09:30",
         duration: 30,
@@ -170,10 +179,10 @@ export class HealthcareAIAgent {
         providerId: "PROV002",
         providerName: "Dr. Michael Chen",
         locationId: "LOC001",
-        locationName: "Main Campus Cardiology", 
-        serviceType: "cardiology",
-        specialtyRequired: "cardiology",
-        date: "2024-08-20" as any,
+        locationName: "Main Campus", 
+        serviceType: "Check up",
+        specialtyRequired: "general",
+        date: "2024-08-19" as any,
         startTime: "14:00",
         endTime: "14:30",
         duration: 30,
@@ -318,14 +327,52 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
     }
   }
 
+  // Create new patient if they don't exist
+  async createPatientIfNeeded(
+    sessionId: string,
+    patientName: string,
+    context: SchedulingContext
+  ): Promise<{ patientId: string; isNewPatient: boolean }> {
+    this.addAuditStep(sessionId, 'patient_lookup', 'in_progress');
+    
+    // Check if patient already exists
+    const existingPatients = await this.storage.getAllPatients();
+    const existingPatient = existingPatients.find((p: Patient) => 
+      p.name.toLowerCase() === patientName.toLowerCase()
+    );
+    
+    if (existingPatient) {
+      this.addAuditStep(sessionId, 'patient_lookup', 'completed', { found: true, patientId: existingPatient.id });
+      return { patientId: existingPatient.id, isNewPatient: false };
+    }
+    
+    // Create new patient
+    this.addAuditStep(sessionId, 'patient_creation', 'in_progress');
+    const newPatientData: InsertPatient = {
+      name: patientName,
+      gender: 'Unknown', // Would collect during registration
+      dateOfBirth: '1990-01-01', // Default - would collect during registration
+      department: context.specialty || 'General Medicine',
+      patientId: `#${patientName.toUpperCase().replace(/\s+/g, '').slice(0, 3)}${Date.now().toString().slice(-3)}`,
+      avatar: patientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    };
+    
+    const newPatient = await this.storage.createPatient(newPatientData);
+    this.addAuditStep(sessionId, 'patient_creation', 'completed', { patientId: newPatient.id });
+    
+    return { patientId: newPatient.id, isNewPatient: true };
+  }
+
   // Complete end-to-end scheduling workflow
   async executeSchedulingWorkflow(
     sessionId: string,
-    patientId: string,
+    patientName: string,
     context: SchedulingContext
   ): Promise<{
     success: boolean;
     appointmentId?: string;
+    patientId?: string;
+    isNewPatient?: boolean;
     steps: WorkflowStep[];
     nextActions: string[];
     errors: string[];
@@ -333,6 +380,11 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
     const errors: string[] = [];
     
     try {
+      // Step 0: Create or find patient
+      const { patientId, isNewPatient } = await this.createPatientIfNeeded(sessionId, patientName, context);
+      context.patientId = patientId;
+      context.patientName = patientName;
+      
       // Step 1: Insurance Eligibility Check
       this.addAuditStep(sessionId, 'eligibility_check', 'in_progress');
       const eligibility = await this.checkInsuranceEligibility(patientId, context.serviceType);
@@ -381,13 +433,22 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
       }
       this.addAuditStep(sessionId, 'slot_query', 'completed', { slotsFound: availableSlots.length });
 
-      // Step 4: Book Appointment (mock)
+      // Step 4: Book Appointment (create actual record)
       this.addAuditStep(sessionId, 'appointment_booking', 'in_progress');
       const selectedSlot = availableSlots[0]; // Auto-select first available
       
-      // Mock appointment booking - in production would create actual appointment record
-      const appointmentId = `APPT-${Date.now()}`;
-      this.addAuditStep(sessionId, 'appointment_booking', 'completed', { appointmentId });
+      // Create actual appointment record
+      const appointmentData: InsertAppointment = {
+        patientId: patientId,
+        patientName: context.patientName || 'Unknown Patient',
+        appointmentType: context.serviceType,
+        appointmentDate: selectedSlot.date,
+        appointmentTime: selectedSlot.startTime,
+        status: 'scheduled'
+      };
+      
+      const appointment = await this.storage.createAppointment(appointmentData);
+      this.addAuditStep(sessionId, 'appointment_booking', 'completed', { appointmentId: appointment.id });
 
       // Step 5: Send Confirmation & Pre-visit Instructions
       this.addAuditStep(sessionId, 'send_confirmation', 'in_progress');
@@ -396,7 +457,9 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
 
       return {
         success: true,
-        appointmentId,
+        appointmentId: appointment.id,
+        patientId: patientId,
+        isNewPatient: isNewPatient,
         steps: this.auditTrail.get(sessionId) || [],
         nextActions: ['send_prep_instructions', 'schedule_reminder'],
         errors
@@ -458,5 +521,9 @@ Keep instructions clear, concise, and patient-friendly.`;
   }
 }
 
-// Export singleton instance
-export const healthcareAgent = new HealthcareAIAgent();
+// Export singleton instance (will be initialized with storage in routes setup)
+export let healthcareAgent: HealthcareAIAgent;
+
+export function initializeHealthcareAgent(storage: any) {
+  healthcareAgent = new HealthcareAIAgent(storage);
+}

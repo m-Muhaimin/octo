@@ -22,7 +22,7 @@ const eligibilitySchema = z.object({
 
 const schedulingSchema = z.object({
   sessionId: z.string(),
-  patientId: z.string(),
+  patientName: z.string(),
   serviceType: z.string(),
   specialty: z.string().optional(),
   urgency: z.enum(['routine', 'urgent', 'stat']).default('routine'),
@@ -115,7 +115,7 @@ router.post('/ai/schedule', async (req: Request, res: Response) => {
       });
     }
 
-    const { sessionId, patientId, serviceType, specialty, urgency, preferredLocation, preferredProvider } = validation.data;
+    const { sessionId, patientName, serviceType, specialty, urgency, preferredLocation, preferredProvider } = validation.data;
     
     const context = {
       serviceType,
@@ -125,7 +125,7 @@ router.post('/ai/schedule', async (req: Request, res: Response) => {
       preferredProvider
     };
 
-    const result = await healthcareAgent.executeSchedulingWorkflow(sessionId, patientId, context);
+    const result = await healthcareAgent.executeSchedulingWorkflow(sessionId, patientName, context);
 
     res.json({
       status: result.success ? 'success' : 'failed',

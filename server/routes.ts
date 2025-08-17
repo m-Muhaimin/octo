@@ -3,8 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema } from "@shared/schema";
 import aiRoutes from "./ai-routes";
+import { initializeHealthcareAgent } from "./ai-agent-deepseek";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize AI agent with storage
+  initializeHealthcareAgent(storage);
+  
   // Register AI routes
   app.use("/api", aiRoutes);
 

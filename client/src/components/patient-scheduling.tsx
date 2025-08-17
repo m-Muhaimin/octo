@@ -68,6 +68,39 @@ export default function PatientScheduling() {
   const [eligibilityResult, setEligibilityResult] = useState<EligibilityResult | null>(null);
   const [availableSlots, setAvailableSlots] = useState<AppointmentSlot[]>([]);
 
+  // Execute scheduling workflow
+  const scheduleMutation = useMutation({
+    mutationFn: async (data: { 
+      sessionId: string; 
+      patientName: string; 
+      serviceType: string;
+      urgency?: string;
+    }) => {
+      return apiRequest('/api/ai/schedule', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: (result) => {
+      if (result.status === 'success') {
+        toast({
+          title: "Appointment Scheduled!",
+          description: `Successfully scheduled ${result.result.isNewPatient ? 'new patient' : 'patient'} appointment.`
+        });
+        // Refresh appointment data
+        window.location.reload();
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Scheduling Failed",
+        description: "Unable to schedule appointment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Chat with AI agent
   const chatMutation = useMutation({
     mutationFn: async (data: { message: string; sessionId?: string }) => {
