@@ -127,7 +127,7 @@ export default function AIDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-medisight-teal bg-opacity-10 text-medisight-teal';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'error': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -150,7 +150,7 @@ export default function AIDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Bot className="w-8 h-8 text-blue-600" />
+            <Bot className="w-8 h-8 text-medisight-teal" />
             AI Medical Agent Dashboard
           </h1>
           <p className="text-text-secondary">
@@ -161,6 +161,7 @@ export default function AIDashboard() {
           <Button
             variant="outline"
             onClick={() => setShowEHRSync(true)}
+            className="border-gray-300 hover:border-medisight-teal"
             data-testid="button-ehr-sync"
           >
             <Brain className="w-4 h-4 mr-2" />
@@ -168,7 +169,7 @@ export default function AIDashboard() {
           </Button>
           <Button
             onClick={() => setShowAIAssistant(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-medisight-teal hover:bg-medisight-dark-teal"
             data-testid="button-ai-assistant"
           >
             <Bot className="w-4 h-4 mr-2" />
@@ -186,8 +187,8 @@ export default function AIDashboard() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-medisight-teal bg-opacity-10 rounded-lg flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-medisight-teal" />
                     </div>
                     <div>
                       <p className="text-sm text-text-secondary">{metric.title}</p>
@@ -211,9 +212,9 @@ export default function AIDashboard() {
       </div>
 
       {/* AI Insights Alert */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <Brain className="w-4 h-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
+      <Alert className="border-medisight-teal border-opacity-20 bg-medisight-teal bg-opacity-5">
+        <Brain className="w-4 h-4 text-medisight-teal" />
+        <AlertDescription className="text-medisight-dark-teal">
           <strong>AI Insight:</strong> Claims submitted with AI pre-analysis have a 94.2% approval rate, 
           15% higher than manual submissions. Consider enabling full automation for routine claims.
         </AlertDescription>

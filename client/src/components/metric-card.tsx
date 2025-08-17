@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, CalendarCheck, DollarSign, Activity } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface MetricCardProps {
   icon: string;
@@ -11,6 +12,8 @@ interface MetricCardProps {
 }
 
 export default function MetricCard({ icon, title, value, growth, "data-testid": testId }: MetricCardProps) {
+  const [, setLocation] = useLocation();
+  
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "users":
@@ -24,6 +27,26 @@ export default function MetricCard({ icon, title, value, growth, "data-testid": 
       default:
         return Activity;
     }
+  };
+
+  const getNavigationPath = (title: string) => {
+    switch (title.toLowerCase()) {
+      case "total patients":
+        return "/patients";
+      case "total appointment":
+        return "/appointments";
+      case "total income":
+        return "/billing";
+      case "total treatments":
+        return "/billing";
+      default:
+        return "/dashboard";
+    }
+  };
+
+  const handleSeeDetails = () => {
+    const path = getNavigationPath(title);
+    setLocation(path);
   };
 
   const IconComponent = getIconComponent(icon);
@@ -43,7 +66,7 @@ export default function MetricCard({ icon, title, value, growth, "data-testid": 
         {value}
       </p>
       <Button 
-        onClick={() => toast({ title: `${title} details page coming soon!` })}
+        onClick={handleSeeDetails}
         variant="ghost" 
         className="text-medisight-teal text-xs font-medium p-0 h-auto flex items-center space-x-1 hover:text-medisight-dark-teal transition-colors"
         data-testid={`button-see-details-${title.toLowerCase().replace(/\s+/g, '-')}`}

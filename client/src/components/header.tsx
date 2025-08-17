@@ -84,7 +84,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
               onClick={handleExport}
               variant="outline" 
               size="sm"
-              className="flex items-center space-x-1 text-text-secondary text-xs px-3 py-1.5 h-8 border-gray-300"
+              className="flex items-center space-x-1 text-text-secondary text-xs px-3 py-1.5 h-8 border-gray-300 hover:border-medisight-teal"
               data-testid="button-export"
             >
               <Download className="h-3 w-3" />

@@ -129,7 +129,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
               onClick={() => setShowFilterModal(true)}
               variant="outline" 
               size="sm"
-              className="flex items-center space-x-2 text-text-secondary text-xs px-3 py-1.5 h-8 border-gray-300"
+              className="flex items-center space-x-2 text-text-secondary text-xs px-3 py-1.5 h-8 border-gray-300 hover:border-medisight-teal"
               data-testid="button-filter"
             >
               <Filter className="h-3 w-3" />

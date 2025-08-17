@@ -39,21 +39,25 @@ function AppContent() {
     <div className="flex h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       
-      <div className="flex-1 overflow-auto min-w-0">
-        <Header onSidebarToggle={toggleSidebar} />
+      <div className="flex-1 overflow-hidden min-w-0 flex flex-col">
+        <div className="sticky top-0 z-10">
+          <Header onSidebarToggle={toggleSidebar} />
+        </div>
         
-        <Switch>
-          <Route path="/" component={Dashboard}/>
-          <Route path="/dashboard" component={Dashboard}/>
-          <Route path="/patients" component={Patients}/>
-          <Route path="/appointments" component={Appointments}/>
-          <Route path="/messages" component={Messages}/>
-          <Route path="/billing" component={Billing}/>
-          <Route path="/transactions" component={Transactions}/>
-          <Route path="/settings" component={Settings}/>
-          <Route path="/ai-scheduling" component={PatientScheduling}/>
-          <Route component={NotFound} />
-        </Switch>
+        <div className="flex-1 overflow-auto">
+          <Switch>
+            <Route path="/" component={Dashboard}/>
+            <Route path="/dashboard" component={Dashboard}/>
+            <Route path="/patients" component={Patients}/>
+            <Route path="/appointments" component={Appointments}/>
+            <Route path="/messages" component={Messages}/>
+            <Route path="/billing" component={Billing}/>
+            <Route path="/transactions" component={Transactions}/>
+            <Route path="/settings" component={Settings}/>
+            <Route path="/ai-scheduling" component={PatientScheduling}/>
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </div>
     </div>
   );

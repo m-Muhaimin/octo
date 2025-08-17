@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Users, Calendar, CreditCard, FileText } from "lucide-react";
 import CreatePatientModal from "./create-patient-modal";
 import CreateAppointmentModal from "./create-appointment-modal";
+import CreateTransactionModal from "./create-transaction-modal";
+import CreateReportModal from "./create-report-modal";
 
 interface CreateModalProps {
   open: boolean;
@@ -13,6 +15,8 @@ interface CreateModalProps {
 export default function CreateModal({ open, onOpenChange }: CreateModalProps) {
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const createOptions = [
     {
@@ -39,7 +43,7 @@ export default function CreateModal({ open, onOpenChange }: CreateModalProps) {
       description: "Record a new payment or transaction",
       action: () => {
         onOpenChange(false);
-        // TODO: Implement transaction creation
+        setShowTransactionModal(true);
       },
     },
     {
@@ -48,7 +52,7 @@ export default function CreateModal({ open, onOpenChange }: CreateModalProps) {
       description: "Generate a new medical report",
       action: () => {
         onOpenChange(false);
-        // TODO: Implement report creation
+        setShowReportModal(true);
       },
     },
   ];
@@ -92,6 +96,14 @@ export default function CreateModal({ open, onOpenChange }: CreateModalProps) {
       <CreateAppointmentModal 
         open={showAppointmentModal} 
         onOpenChange={setShowAppointmentModal} 
+      />
+      <CreateTransactionModal 
+        open={showTransactionModal} 
+        onOpenChange={setShowTransactionModal} 
+      />
+      <CreateReportModal 
+        open={showReportModal} 
+        onOpenChange={setShowReportModal} 
       />
     </>
   );

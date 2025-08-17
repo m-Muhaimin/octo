@@ -51,7 +51,10 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
   const updateMutation = useMutation({
     mutationFn: async (data: InsertPatient) => {
       if (!patient) return;
-      const response = await apiRequest("PUT", `/api/patients/${patient.id}`, data);
+      const response = await apiRequest(`/api/patients/${patient.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -68,7 +71,9 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!patient) return;
-      await apiRequest("DELETE", `/api/patients/${patient.id}`);
+      await apiRequest(`/api/patients/${patient.id}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });

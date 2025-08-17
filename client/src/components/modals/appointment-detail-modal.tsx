@@ -55,7 +55,10 @@ export default function AppointmentDetailModal({ appointment, open, onOpenChange
   const updateMutation = useMutation({
     mutationFn: async (data: InsertAppointment) => {
       if (!appointment) return;
-      const response = await apiRequest("PUT", `/api/appointments/${appointment.id}`, data);
+      const response = await apiRequest(`/api/appointments/${appointment.id}`, {
+        method: "PUT",
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -72,7 +75,9 @@ export default function AppointmentDetailModal({ appointment, open, onOpenChange
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!appointment) return;
-      await apiRequest("DELETE", `/api/appointments/${appointment.id}`);
+      await apiRequest(`/api/appointments/${appointment.id}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
