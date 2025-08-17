@@ -107,7 +107,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-[17px] border border-gray-200 shadow-sm">
       <div className="p-5 border-b border-gray-200">
         <h3 className="text-base font-semibold text-text-primary mb-4">Patient list</h3>
         
@@ -269,7 +269,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
           filteredPatients.map((patient, index) => (
             <div 
               key={patient.id} 
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="p-4 border border-gray-200 rounded-[17px] hover:bg-gray-50 transition-colors"
               data-testid={`card-patient-${index}`}
             >
               <div className="flex items-start space-x-3">

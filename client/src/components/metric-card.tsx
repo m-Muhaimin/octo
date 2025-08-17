@@ -29,9 +29,9 @@ export default function MetricCard({ icon, title, value, growth, "data-testid": 
   const IconComponent = getIconComponent(icon);
 
   return (
-    <div className="bg-white rounded-lg p-5 border-[5px] border-gray-200 shadow-sm" data-testid={testId}>
+    <div className="bg-white rounded-[17px] p-5 border border-gray-200 shadow-sm" data-testid={testId}>
       <div className="flex items-center justify-between mb-3">
-        <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gray-100 rounded-[11px] flex items-center justify-center">
           <IconComponent className="h-4 w-4 text-text-secondary" />
         </div>
         <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">

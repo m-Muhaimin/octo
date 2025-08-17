@@ -52,7 +52,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="p-5 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-medisight-teal rounded-md flex items-center justify-center">
+              <div className="w-6 h-6 bg-medisight-teal rounded-[11px] flex items-center justify-center">
                 <Stethoscope className="h-3 w-3 text-white" />
               </div>
               <span className="font-medium text-base text-text-primary">Medisight</span>
@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       onToggle(); // Close sidebar on mobile after navigation
                     }
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-[13px] text-sm transition-colors ${
                     location === item.path || (location === "/" && item.path === "/dashboard")
                       ? "bg-medisight-teal text-white"
                       : "text-text-secondary hover:bg-gray-50"
@@ -112,7 +112,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         toast({ title: `${item.label} feature coming soon!` });
                       }
                     }}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-[13px] text-sm transition-colors ${
                       location === item.path
                         ? "bg-medisight-teal text-white"
                         : "text-text-secondary hover:bg-gray-50"

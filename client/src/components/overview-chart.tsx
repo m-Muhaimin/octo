@@ -8,7 +8,7 @@ interface OverviewChartProps {
 
 export default function OverviewChart({ data }: OverviewChartProps) {
   return (
-    <div className="bg-white rounded-lg p-5 border-[5px] border-gray-200 shadow-sm">
+    <div className="bg-white rounded-[17px] p-5 border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-text-primary">Overview</h3>
         <button 

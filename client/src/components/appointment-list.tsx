@@ -55,7 +55,7 @@ export default function AppointmentList({ appointments }: AppointmentListProps) 
   };
 
   return (
-    <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-[17px] p-5 border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-semibold text-text-primary">Appointment list</h3>
         <DropdownMenu>
@@ -92,7 +92,7 @@ export default function AppointmentList({ appointments }: AppointmentListProps) 
           appointments.map((appointment, index) => (
             <div 
               key={appointment.id} 
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex items-center space-x-3 p-3 rounded-[17px] hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => handleViewAppointment(appointment)}
               data-testid={`appointment-item-${index}`}
             >
