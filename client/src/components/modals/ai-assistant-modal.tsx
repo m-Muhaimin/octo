@@ -222,7 +222,7 @@ export default function AIAssistantModal({ open, onOpenChange }: AIAssistantModa
                         <div
                           className={`max-w-[80%] rounded-lg p-3 ${
                             message.type === 'user'
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-medisight-teal text-white'
                               : 'bg-gray-100 text-gray-900'
                           }`}
                         >
@@ -265,6 +265,7 @@ export default function AIAssistantModal({ open, onOpenChange }: AIAssistantModa
                     onClick={handleSendMessage}
                     disabled={!currentMessage.trim() || isLoading}
                     data-testid="button-send-ai-message"
+                    className="bg-medisight-teal hover:bg-medisight-dark-teal text-white"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
@@ -285,7 +286,7 @@ export default function AIAssistantModal({ open, onOpenChange }: AIAssistantModa
                       variant="outline"
                       size="sm"
                       onClick={() => handleQuickAction(action.query)}
-                      className="justify-start h-auto p-3"
+                      className="justify-start h-auto p-3 border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
                       data-testid={`button-quick-action-${action.id}`}
                     >
                       <action.icon className="w-4 h-4 mr-2" />

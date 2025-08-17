@@ -42,6 +42,7 @@
   --radius: 0.25rem;
   --medisight-teal: hsl(159.44 80.37% 38.04%);
   --medisight-dark-teal: hsl(158.85 80.33% 33.33%);
+  --medisight-light-teal: hsl(159.44 80.37% 85.04%);
   --text-primary: hsl(210.43 20.93% 14.31%);
   --text-secondary: hsl(214.29 13.95% 40.98%);
   --border-light: hsl(214.58 14.81% 88.04%);

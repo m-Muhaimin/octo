@@ -82,13 +82,15 @@ export default function PatientScheduling() {
     },
     onSuccess: (data) => {
       setSessionId(data.sessionId);
-      setMessages(prev => [...prev, {
+      const assistantMessage: Message = {
         role: 'assistant',
         content: data.response,
         timestamp: new Date(),
         confidence: data.confidence,
         actions: data.actions
-      }]);
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
 
       // Show next step actions
       if (data.actions && data.actions.length > 0) {
@@ -155,11 +157,13 @@ export default function PatientScheduling() {
     if (!currentMessage.trim() || chatMutation.isPending) return;
 
     // Add user message
-    setMessages(prev => [...prev, {
+    const userMessage: Message = {
       role: 'user',
       content: currentMessage,
       timestamp: new Date()
-    }]);
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
 
     // Send to AI agent
     chatMutation.mutate({
@@ -181,7 +185,26 @@ export default function PatientScheduling() {
 
     const message = quickMessages[action] || action;
     setCurrentMessage(message);
-    handleSendMessage();
+    
+    // Trigger send message after a brief delay to ensure state update
+    setTimeout(() => {
+      if (message.trim() && !chatMutation.isPending) {
+        const userMessage: Message = {
+          role: 'user',
+          content: message,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+        
+        chatMutation.mutate({
+          message: message,
+          sessionId: sessionId || undefined
+        });
+        
+        setCurrentMessage('');
+      }
+    }, 100);
   };
 
   const getStatusIcon = (status: string) => {
@@ -236,7 +259,7 @@ export default function PatientScheduling() {
                   <div
                     className={`max-w-[85%] rounded-lg p-3 ${
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-medisight-teal text-white'
                         : 'bg-gray-100 text-gray-900'
                     }`}
                   >
@@ -281,6 +304,7 @@ export default function PatientScheduling() {
                 size="sm"
                 onClick={() => handleQuickAction('schedule_cardiology')}
                 data-testid="button-schedule-cardiology"
+                className="border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
               >
                 Schedule Cardiology
               </Button>
@@ -289,6 +313,7 @@ export default function PatientScheduling() {
                 size="sm"
                 onClick={() => handleQuickAction('check_eligibility')}
                 data-testid="button-check-eligibility"
+                className="border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
               >
                 Check Coverage
               </Button>
@@ -297,6 +322,7 @@ export default function PatientScheduling() {
                 size="sm"
                 onClick={() => handleQuickAction('urgent_care')}
                 data-testid="button-urgent-care"
+                className="border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
               >
                 Urgent Care
               </Button>
@@ -317,6 +343,7 @@ export default function PatientScheduling() {
               onClick={handleSendMessage}
               disabled={!currentMessage.trim() || chatMutation.isPending}
               data-testid="button-send-message"
+              className="bg-medisight-teal hover:bg-medisight-dark-teal text-white"
             >
               Send
             </Button>
@@ -440,7 +467,11 @@ export default function PatientScheduling() {
                         {slot.startTime} - {slot.endTime}
                       </span>
                     </div>
-                    <Button size="sm" className="mt-2 w-full" data-testid={`button-book-${slot.id}`}>
+                    <Button 
+                      size="sm" 
+                      className="mt-2 w-full bg-medisight-teal hover:bg-medisight-dark-teal text-white" 
+                      data-testid={`button-book-${slot.id}`}
+                    >
                       Book Appointment
                     </Button>
                   </div>
@@ -462,14 +493,14 @@ export default function PatientScheduling() {
                 serviceType: 'cardiology' 
               })}
               disabled={eligibilityMutation.isPending}
-              className="w-full"
+              className="w-full bg-medisight-teal hover:bg-medisight-dark-teal text-white"
               data-testid="button-test-eligibility"
             >
               Test Eligibility Check
             </Button>
             <Button
               onClick={() => refetchSlots()}
-              className="w-full"
+              className="w-full border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
               variant="outline"
               data-testid="button-query-slots"
             >
@@ -483,7 +514,7 @@ export default function PatientScheduling() {
                 urgency: 'routine'
               })}
               disabled={schedulingMutation.isPending}
-              className="w-full"
+              className="w-full border-medisight-teal text-medisight-teal hover:bg-medisight-light-teal"
               variant="outline"
               data-testid="button-test-workflow"
             >
