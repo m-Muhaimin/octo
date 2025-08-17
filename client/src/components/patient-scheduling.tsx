@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, User, MapPin, Phone, CheckCircle, AlertCircle, XCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -88,8 +88,9 @@ export default function PatientScheduling() {
           title: "Appointment Scheduled!",
           description: `Successfully scheduled ${result.result.isNewPatient ? 'new patient' : 'patient'} appointment.`
         });
-        // Refresh appointment data
-        window.location.reload();
+        // Invalidate and refetch relevant data
+        queryClient.invalidateQueries({ queryKey: ['/api/patients'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/appointments'] });
       }
     },
     onError: (error) => {
