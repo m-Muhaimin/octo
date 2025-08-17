@@ -42,6 +42,7 @@ export default function CreateAppointmentModal({ open, onOpenChange }: CreateApp
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       toast({ title: "Appointment created successfully!" });
       onOpenChange(false);
       setFormData({

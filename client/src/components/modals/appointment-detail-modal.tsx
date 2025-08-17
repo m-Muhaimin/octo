@@ -64,6 +64,7 @@ export default function AppointmentDetailModal({ appointment, open, onOpenChange
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       setIsEditing(false);
       toast({ title: "Appointment updated successfully!" });
     },
@@ -82,6 +83,7 @@ export default function AppointmentDetailModal({ appointment, open, onOpenChange
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       onOpenChange(false);
       toast({ title: "Appointment deleted successfully!" });
     },

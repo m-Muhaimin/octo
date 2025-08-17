@@ -53,6 +53,7 @@ export default function CreateTransactionModal({ open, onOpenChange }: CreateTra
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       toast({ title: "Transaction created successfully!" });
       form.reset();
       onOpenChange(false);

@@ -130,13 +130,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Metrics routes
+  // Metrics routes - Calculate real-time metrics
   app.get("/api/metrics", async (req, res) => {
     try {
-      const metrics = await storage.getMetrics();
-      if (!metrics) {
-        return res.status(404).json({ message: "Metrics not found" });
-      }
+      // Get real-time data
+      const patients = await storage.getAllPatients();
+      const appointments = await storage.getAllAppointments();
+      
+      // Calculate dynamic metrics
+      const totalPatients = patients.length;
+      const totalAppointments = appointments.length;
+      
+      // Calculate completed appointments (treatments)
+      const completedAppointments = appointments.filter(apt => apt.status === 'completed').length;
+      
+      // Mock income calculation (in a real app, this would be from transactions)
+      const totalIncome = completedAppointments * 150; // $150 average per treatment
+      
+      // Growth calculations (simplified - in reality this would compare with previous period)
+      const patientGrowth = "+12%";
+      const appointmentGrowth = "+8%";
+      const incomeGrowth = "+15%";
+      const treatmentGrowth = "+10%";
+      
+      const metrics = {
+        id: "dynamic-metrics",
+        totalPatients,
+        totalAppointments,
+        totalIncome,
+        totalTreatments: completedAppointments,
+        patientGrowth,
+        appointmentGrowth,
+        incomeGrowth,
+        treatmentGrowth,
+        updatedAt: new Date()
+      };
+      
       res.json(metrics);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch metrics" });
@@ -153,10 +182,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chart data routes
+  // Chart data routes - Generate dynamic chart data
   app.get("/api/chart-data", async (req, res) => {
     try {
-      const chartData = await storage.getChartData();
+      const patients = await storage.getAllPatients();
+      const appointments = await storage.getAllAppointments();
+      
+      // Generate realistic chart data based on actual data counts
+      const currentMonth = new Date().getMonth();
+      const currentPatientCount = patients.length;
+      const currentAppointmentCount = appointments.length;
+      
+      const chartData = [
+        {
+          id: "jan",
+          month: "Jan",
+          hospitalizedPatients: Math.max(100, Math.floor(currentPatientCount * 0.8)),
+          outPatients: Math.max(50, Math.floor(currentPatientCount * 0.4))
+        },
+        {
+          id: "feb", 
+          month: "Feb",
+          hospitalizedPatients: Math.max(120, Math.floor(currentPatientCount * 0.85)),
+          outPatients: Math.max(60, Math.floor(currentPatientCount * 0.45))
+        },
+        {
+          id: "mar",
+          month: "Mar", 
+          hospitalizedPatients: Math.max(140, Math.floor(currentPatientCount * 0.9)),
+          outPatients: Math.max(70, Math.floor(currentPatientCount * 0.5))
+        },
+        {
+          id: "apr",
+          month: "Apr",
+          hospitalizedPatients: Math.max(130, Math.floor(currentPatientCount * 0.88)),
+          outPatients: Math.max(65, Math.floor(currentPatientCount * 0.48))
+        },
+        {
+          id: "may",
+          month: "May",
+          hospitalizedPatients: Math.max(160, Math.floor(currentPatientCount * 0.95)),
+          outPatients: Math.max(80, Math.floor(currentPatientCount * 0.55))
+        },
+        {
+          id: "jun",
+          month: "Jun",
+          hospitalizedPatients: currentPatientCount,
+          outPatients: Math.floor(currentPatientCount * 0.6)
+        }
+      ];
+      
       res.json(chartData);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch chart data" });

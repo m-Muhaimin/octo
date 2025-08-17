@@ -60,6 +60,7 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       setIsEditing(false);
       toast({ title: "Patient updated successfully!" });
     },
@@ -78,6 +79,7 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       onOpenChange(false);
       toast({ title: "Patient deleted successfully!" });
     },

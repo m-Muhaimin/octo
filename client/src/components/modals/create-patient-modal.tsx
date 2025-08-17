@@ -37,6 +37,7 @@ export default function CreatePatientModal({ open, onOpenChange }: CreatePatient
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       queryClient.invalidateQueries({ queryKey: ["/api/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chart-data"] });
       toast({ title: "Patient created successfully!" });
       onOpenChange(false);
       setFormData({
