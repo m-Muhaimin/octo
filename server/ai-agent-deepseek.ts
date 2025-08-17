@@ -448,7 +448,7 @@ Keep instructions clear, concise, and patient-friendly.`;
 
   // Clean up old sessions
   cleanupSessions(olderThan: Date = new Date(Date.now() - 24 * 60 * 60 * 1000)) {
-    for (const [sessionId, steps] of this.auditTrail.entries()) {
+    for (const [sessionId, steps] of Array.from(this.auditTrail.entries())) {
       const lastStep = steps[steps.length - 1];
       if (lastStep && lastStep.timestamp < olderThan) {
         this.auditTrail.delete(sessionId);

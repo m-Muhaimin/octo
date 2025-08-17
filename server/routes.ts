@@ -2,8 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema } from "@shared/schema";
+import aiRoutes from "./ai-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register AI routes
+  app.use("/api", aiRoutes);
+
   // Patients routes
   app.get("/api/patients", async (req, res) => {
     try {
