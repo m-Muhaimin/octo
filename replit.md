@@ -27,8 +27,14 @@ Preferred communication style: Simple, everyday language.
 ## Data Storage Solutions
 - **Primary Database**: PostgreSQL for persistent data storage
 - **Database Schema**: Defined using Drizzle ORM with the following main entities:
-  - Patients: Core patient information including demographics and medical details
+  - Patients: Core patient information including demographics and medical details  
   - Appointments: Scheduling data linked to patients with status tracking
+  - Coverage: FHIR R4 insurance eligibility and coverage information
+  - Communications: Patient messaging and notification history with FHIR compliance
+  - AI Sessions: Conversation tracking and workflow management
+  - AI Messages: Complete audit trail of AI interactions
+  - Appointment Slots: Provider availability and scheduling templates
+  - Referrals: Specialist referral management and authorization tracking
   - Metrics: Dashboard analytics and key performance indicators
   - Chart Data: Time-series data for dashboard visualizations
 - **Migrations**: Managed through Drizzle Kit for schema versioning and deployment
@@ -40,12 +46,16 @@ Preferred communication style: Simple, everyday language.
 - **Future Implementation**: Ready for user authentication and role-based access control
 
 ## AI and Automation Features
-- **AI Medical Agent**: Production-ready AI assistant using LangChain + OpenAI for medical insights
+- **DeepSeek-Powered Healthcare Agent**: Advanced AI assistant specialized in patient access & scheduling automation
+- **FHIR R4 Compliance**: Full support for Coverage, Communication, Patient, and Appointment resources
+- **Insurance Eligibility Verification**: Real-time 270/271 EDI transaction processing for coverage validation
+- **Intelligent Scheduling Workflows**: End-to-end appointment booking with eligibility checks, referral validation, and slot optimization
+- **Multi-Channel Communication**: SMS, web, phone, and email patient interaction with audit trails
+- **ICD/CPT Code Mapping**: Automatic service type to medical coding translation
+- **Smart Appointment Slots**: Provider availability queries with location and specialty filtering
+- **Pre-visit Instructions**: AI-generated, personalized preparation guidance
 - **EHR Integration**: Multi-system integration (athenahealth, DrChrono, Epic, Cerner) with automated sync
-- **Insurance Processing**: Automated claim submission, analysis, and approval likelihood prediction
-- **Smart Notifications**: AI-driven appointment reminders and billing follow-ups
 - **Predictive Analytics**: Revenue forecasting, patient flow optimization, and operational insights
-- **Vector Database**: Medical knowledge base with policy and regulatory information
 
 ## Backend Architecture Enhancement
 - **AI Backend**: FastAPI services for AI agent operations and external integrations
@@ -55,10 +65,19 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 - **Database Provider**: Neon Database (serverless PostgreSQL) via @neondatabase/serverless
-- **AI Services**: OpenAI GPT-4o, LangChain for medical AI processing
+- **AI Services**: DeepSeek API for advanced healthcare conversation processing and decision making
 - **Communication**: Twilio (SMS/Voice), SendGrid (Email) for automated patient outreach  
 - **UI Components**: Extensive use of Radix UI primitives for accessible component building
 - **Charts and Visualizations**: Recharts library for data visualization components
 - **Form Handling**: React Hook Form with Zod validation for type-safe form management
 - **Date Handling**: date-fns for date manipulation and formatting
 - **Development Tools**: Replit-specific plugins for development environment integration
+
+## Recent Changes (August 17, 2025)
+- **Migration Complete**: Successfully migrated from Replit Agent to standard Replit environment
+- **DeepSeek Integration**: Integrated DeepSeek API for advanced AI healthcare conversations
+- **FHIR R4 Implementation**: Added comprehensive FHIR R4 resource support for healthcare interoperability
+- **Patient Scheduling Automation**: Complete end-to-end scheduling workflow with eligibility verification
+- **Enhanced Database Schema**: Extended with healthcare-specific tables for insurance, communications, and AI session management
+- **AI-Powered UI Components**: New patient scheduling interface with real-time AI conversation
+- **Security & Compliance**: Implemented audit trails and secure session management for healthcare workflows

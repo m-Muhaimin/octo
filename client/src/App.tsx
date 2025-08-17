@@ -11,6 +11,7 @@ import Messages from "@/pages/messages";
 import Billing from "@/pages/billing";
 import Transactions from "@/pages/transactions";
 import Settings from "@/pages/settings";
+import PatientScheduling from "@/components/patient-scheduling";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
@@ -50,6 +51,7 @@ function AppContent() {
           <Route path="/billing" component={Billing}/>
           <Route path="/transactions" component={Transactions}/>
           <Route path="/settings" component={Settings}/>
+          <Route path="/ai-scheduling" component={PatientScheduling}/>
           <Route component={NotFound} />
         </Switch>
       </div>

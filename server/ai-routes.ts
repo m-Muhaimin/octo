@@ -1,51 +1,243 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+import { healthcareAgent } from './ai-agent-deepseek';
+import { z } from 'zod';
 
 const router = Router();
 
-// Mock AI endpoints for development
-router.post('/ai/query', async (req: Request, res: Response) => {
-  const { query, context, patient_id } = req.body;
-  
-  // Simulate AI processing delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-  
-  // Generate mock AI response based on query
-  let response;
-  if (query.toLowerCase().includes('claim')) {
-    response = {
-      answer: `I've analyzed the insurance claims. Here are the findings:\n\n• 12 claims have >90% approval likelihood\n• 3 claims need additional documentation\n• Average processing time: 3.2 days\n• Potential revenue: $42,500\n\nWould you like me to prioritize the high-risk claims for review?`,
-      confidence: 92,
-      sources: ['Insurance Knowledge Base', 'Practice Data', 'Claims History'],
-      actionable: true
-    };
-  } else if (query.toLowerCase().includes('billing')) {
-    response = {
-      answer: `Billing Analysis Complete:\n\n• Outstanding: $28,450 (15 accounts)\n• 30+ days overdue: $12,200\n• Collection success rate: 94.2%\n• Recommended actions: 5 accounts for follow-up\n\nShall I initiate automated follow-up sequences for overdue accounts?`,
-      confidence: 88,
-      sources: ['Billing System', 'Payment History', 'Collection Analytics'],
-      actionable: true
-    };
-  } else if (query.toLowerCase().includes('appointment')) {
-    response = {
-      answer: `Appointment Efficiency Report:\n\n• Average wait time: 12 minutes\n• No-show rate: 8.3% (below industry average)\n• Peak utilization: Tuesday/Thursday 2-4 PM\n• Optimization opportunity: +15% capacity during off-peak hours\n\nRecommendation: Implement smart scheduling algorithms.`,
-      confidence: 90,
-      sources: ['Scheduling System', 'Patient Flow Data', 'Industry Benchmarks'],
-      actionable: true
-    };
-  } else {
-    response = {
-      answer: `Based on your query "${query}", I can provide detailed analysis and recommendations. Our AI system has access to:\n\n• Medical knowledge base with latest guidelines\n• Insurance policies and claim requirements\n• Patient data and treatment histories\n• Billing and collection best practices\n\nPlease specify which area you'd like me to focus on for more detailed insights.`,
-      confidence: 75,
-      sources: ['Medical Knowledge Base', 'Practice Data'],
-      actionable: false
-    };
+// Validation schemas
+const messageSchema = z.object({
+  message: z.string().min(1),
+  sessionId: z.string().optional(),
+  channel: z.enum(['sms', 'web', 'phone', 'email']).default('web'),
+  phoneNumber: z.string().optional(),
+  email: z.string().email().optional(),
+  patientId: z.string().optional()
+});
+
+const eligibilitySchema = z.object({
+  patientId: z.string(),
+  serviceType: z.string()
+});
+
+const schedulingSchema = z.object({
+  sessionId: z.string(),
+  patientId: z.string(),
+  serviceType: z.string(),
+  specialty: z.string().optional(),
+  urgency: z.enum(['routine', 'urgent', 'stat']).default('routine'),
+  preferredLocation: z.string().optional(),
+  preferredProvider: z.string().optional()
+});
+
+// AI Healthcare Admin Agent - Main conversation endpoint  
+router.post('/ai/chat', async (req: Request, res: Response) => {
+  try {
+    const validation = messageSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid request parameters',
+        errors: validation.error.issues
+      });
+    }
+
+    const { message, sessionId, channel, phoneNumber, email } = validation.data;
+    const finalSessionId = sessionId || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const result = await healthcareAgent.processPatientMessage(
+      finalSessionId,
+      message,
+      channel,
+      phoneNumber,
+      email
+    );
+
+    res.json({
+      status: 'success',
+      sessionId: finalSessionId,
+      response: result.response,
+      actions: result.actions,
+      requiresAuth: result.requiresAuth,
+      nextStep: result.nextStep,
+      confidence: result.confidence,
+      context: result.context
+    });
+
+  } catch (error) {
+    console.error('AI chat error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error processing your message',
+      fallbackResponse: "I'm having trouble processing your request. Please call our office at (555) 123-4567 for immediate assistance."
+    });
   }
+});
+
+// Insurance eligibility check (FHIR R4 270/271)
+router.post('/ai/eligibility', async (req: Request, res: Response) => {
+  try {
+    const validation = eligibilitySchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid request parameters',
+        errors: validation.error.issues
+      });
+    }
+
+    const { patientId, serviceType } = validation.data;
+    const eligibility = await healthcareAgent.checkInsuranceEligibility(patientId, serviceType);
+
+    res.json({
+      status: 'success',
+      eligibility
+    });
+
+  } catch (error) {
+    console.error('Eligibility check error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to check insurance eligibility'
+    });
+  }
+});
+
+// Execute complete scheduling workflow
+router.post('/ai/schedule', async (req: Request, res: Response) => {
+  try {
+    const validation = schedulingSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid scheduling parameters',
+        errors: validation.error.issues
+      });
+    }
+
+    const { sessionId, patientId, serviceType, specialty, urgency, preferredLocation, preferredProvider } = validation.data;
+    
+    const context = {
+      serviceType,
+      specialty,
+      urgency,
+      preferredLocation,
+      preferredProvider
+    };
+
+    const result = await healthcareAgent.executeSchedulingWorkflow(sessionId, patientId, context);
+
+    res.json({
+      status: result.success ? 'success' : 'failed',
+      result
+    });
+
+  } catch (error) {
+    console.error('Scheduling workflow error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to execute scheduling workflow'
+    });
+  }
+});
+
+// Get available appointment slots
+router.get('/ai/slots', async (req: Request, res: Response) => {
+  try {
+    const serviceType = req.query.serviceType as string || 'general';
+    const specialty = req.query.specialty as string;
+    const location = req.query.location as string;
+
+    const slots = await healthcareAgent.queryAvailableSlots(serviceType, specialty, location);
+
+    res.json({
+      status: 'success',
+      slots
+    });
+
+  } catch (error) {
+    console.error('Slot query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to query available slots'
+    });
+  }
+});
+
+// Generate pre-visit instructions
+router.post('/ai/prep-instructions', async (req: Request, res: Response) => {
+  try {
+    const { serviceType, specialty } = req.body;
+    
+    if (!serviceType) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Service type is required'
+      });
+    }
+
+    const instructions = await healthcareAgent.generatePrepInstructions(serviceType, specialty);
+
+    res.json({
+      status: 'success',
+      instructions
+    });
+
+  } catch (error) {
+    console.error('Prep instructions error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to generate prep instructions'
+    });
+  }
+});
+
+// Get session audit trail
+router.get('/ai/audit/:sessionId', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const auditTrail = healthcareAgent.getAuditTrail(sessionId);
+
+    res.json({
+      status: 'success',
+      sessionId,
+      auditTrail
+    });
+
+  } catch (error) {
+    console.error('Audit trail error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve audit trail'
+    });
+  }
+});
+
+// Legacy endpoint for backward compatibility
+router.post('/ai/query', async (req: Request, res: Response) => {
+  const { query } = req.body;
   
-  res.json({
-    status: 'success',
-    response: response
-  });
+  try {
+    const sessionId = `legacy-${Date.now()}`;
+    const result = await healthcareAgent.processPatientMessage(sessionId, query, 'web');
+
+    res.json({
+      status: 'success',
+      response: {
+        answer: result.response,
+        confidence: result.confidence,
+        sources: ['DeepSeek AI', 'Medical Knowledge Base', 'Practice Data'],
+        actionable: result.actions.length > 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Legacy query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to process query'
+    });
+  }
 });
 
 router.get('/ai/analytics', async (req: Request, res: Response) => {

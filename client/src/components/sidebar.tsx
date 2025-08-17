@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: "users", label: "Patients", path: "/patients" },
     { icon: "envelope", label: "Messages", path: "/messages" },
     { icon: "calendar-alt", label: "Appointments", path: "/appointments" },
+    { icon: "robot", label: "AI Scheduling", path: "/ai-scheduling" },
     { icon: "file-invoice", label: "Billing", path: "/billing" },
     { icon: "credit-card", label: "Transactions", path: "/transactions" },
   ];

@@ -108,26 +108,55 @@ export default function AIAssistantModal({ open, onOpenChange }: AIAssistantModa
     setCurrentMessage('');
     setIsLoading(true);
 
-    // Simulate AI processing
-    setTimeout(() => {
-      const aiResponse: AIMessage = {
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentMessage,
+          channel: 'web'
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        const aiResponse: AIMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          confidence: data.confidence,
+          sources: ['DeepSeek AI', 'Medical Knowledge Base', 'Practice Data'],
+          actionable: data.actions && data.actions.length > 0
+        };
+
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        throw new Error(data.message || 'Failed to get AI response');
+      }
+    } catch (error) {
+      const errorResponse: AIMessage = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: generateAIResponse(currentMessage),
+        content: 'I apologize, but I\'m having trouble processing your request right now. Please try again or contact support if the issue persists.',
         timestamp: new Date(),
-        confidence: Math.floor(Math.random() * 20) + 80, // 80-100%
-        sources: ['Medical Knowledge Base', 'Insurance Policies', 'Practice Data'],
-        actionable: true
+        confidence: 0,
+        sources: ['System'],
+        actionable: false
       };
 
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const handleQuickAction = (query: string) => {
     setCurrentMessage(query);
-    handleSendMessage();
+    setTimeout(() => handleSendMessage(), 100);
   };
 
   const generateAIResponse = (query: string): string => {
