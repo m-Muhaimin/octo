@@ -43,6 +43,17 @@ export const chartData = pgTable("chart_data", {
   outpatients: integer("outpatients").notNull(),
 });
 
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: text("patient_id").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  type: text("type").notNull(), // payment, refund, charge
+  description: text("description"),
+  paymentMethod: text("payment_method").notNull(), // cash, card, insurance, bank_transfer
+  transactionDate: timestamp("transaction_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertPatientSchema = createInsertSchema(patients).omit({
   id: true,
 });
@@ -60,6 +71,11 @@ export const insertChartDataSchema = createInsertSchema(chartData).omit({
   id: true,
 });
 
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Patient = typeof patients.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
@@ -68,6 +84,8 @@ export type InsertMetrics = z.infer<typeof insertMetricsSchema>;
 export type Metrics = typeof metrics.$inferSelect;
 export type InsertChartData = z.infer<typeof insertChartDataSchema>;
 export type ChartData = typeof chartData.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Patient, type InsertPatient, type Appointment, type InsertAppointment, type Metrics, type InsertMetrics, type ChartData, type InsertChartData, users, patients, appointments, metrics, chartData } from "@shared/schema";
+import { type User, type InsertUser, type Patient, type InsertPatient, type Appointment, type InsertAppointment, type Metrics, type InsertMetrics, type ChartData, type InsertChartData, type Transaction, type InsertTransaction, users, patients, appointments, metrics, chartData, transactions } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
@@ -32,6 +32,12 @@ export interface IStorage {
   
   getChartData(): Promise<ChartData[]>;
   createChartData(data: InsertChartData): Promise<ChartData>;
+  
+  getAllTransactions(): Promise<Transaction[]>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  updateTransaction(id: string, transaction: InsertTransaction): Promise<Transaction>;
+  deleteTransaction(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -40,12 +46,14 @@ export class MemStorage implements IStorage {
   private appointments: Map<string, Appointment>;
   private metrics: Metrics | undefined;
   private chartData: Map<string, ChartData>;
+  private transactions: Map<string, Transaction>;
 
   constructor() {
     this.users = new Map();
     this.patients = new Map();
     this.appointments = new Map();
     this.chartData = new Map();
+    this.transactions = new Map();
     this.initializeDefaultData();
   }
 
@@ -197,6 +205,41 @@ export class MemStorage implements IStorage {
     this.chartData.set(id, data);
     return data;
   }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return Array.from(this.transactions.values());
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    return this.transactions.get(id);
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const id = randomUUID();
+    const transaction: Transaction = { 
+      ...insertTransaction, 
+      id, 
+      transactionDate: insertTransaction.transactionDate || new Date(),
+      createdAt: new Date()
+    };
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+
+  async updateTransaction(id: string, insertTransaction: InsertTransaction): Promise<Transaction> {
+    const transaction: Transaction = { 
+      ...insertTransaction, 
+      id,
+      transactionDate: insertTransaction.transactionDate || new Date(),
+      createdAt: new Date()
+    };
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+
+  async deleteTransaction(id: string): Promise<void> {
+    this.transactions.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -285,10 +328,33 @@ export class DatabaseStorage implements IStorage {
     const result = await db.insert(chartData).values(insertData).returning();
     return result[0];
   }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions);
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const result = await db.select().from(transactions).where(eq(transactions.id, id));
+    return result[0];
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const result = await db.insert(transactions).values(insertTransaction).returning();
+    return result[0];
+  }
+
+  async updateTransaction(id: string, insertTransaction: InsertTransaction): Promise<Transaction> {
+    const result = await db.update(transactions).set(insertTransaction).where(eq(transactions.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteTransaction(id: string): Promise<void> {
+    await db.delete(transactions).where(eq(transactions.id, id));
+  }
 }
 
-// Initialize storage - use memory storage for reliable operation
-export const storage: IStorage = new MemStorage();
+// Initialize storage - use database storage for persistence
+export const storage: IStorage = new DatabaseStorage();
 
 // Alternative: Async function to get storage with database fallback
 export async function getStorage(): Promise<IStorage> {
@@ -314,11 +380,11 @@ export async function seedDatabase() {
     // Check if data already exists
     const existingPatients = await storage.getAllPatients();
     if (existingPatients.length > 0) {
-      console.log("Storage already seeded with", existingPatients.length, "patients");
+      console.log("Database already seeded with", existingPatients.length, "patients");
       return;
     }
 
-    console.log("Seeding storage with dummy data...");
+    console.log("Seeding database with dummy data...");
 
     // Seed metrics
     await storage.updateMetrics({

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema } from "@shared/schema";
+import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema, insertTransactionSchema } from "@shared/schema";
 import aiRoutes from "./ai-routes";
 import { initializeHealthcareAgent } from "./ai-agent-deepseek";
 
@@ -245,6 +245,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(data);
     } catch (error) {
       res.status(400).json({ message: "Invalid chart data" });
+    }
+  });
+
+  // Transaction routes
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const transactions = await storage.getAllTransactions();
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  app.get("/api/transactions/:id", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      res.json(transaction);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch transaction" });
+    }
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const validatedData = insertTransactionSchema.parse(req.body);
+      const transaction = await storage.createTransaction(validatedData);
+      res.status(201).json(transaction);
+    } catch (error) {
+      console.error("Transaction creation error:", error);
+      res.status(400).json({ message: "Invalid transaction data", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
+  app.put("/api/transactions/:id", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      const validatedData = insertTransactionSchema.parse(req.body);
+      const updatedTransaction = await storage.updateTransaction(req.params.id, validatedData);
+      res.json(updatedTransaction);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid transaction data" });
+    }
+  });
+
+  app.delete("/api/transactions/:id", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      await storage.deleteTransaction(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete transaction" });
     }
   });
 
