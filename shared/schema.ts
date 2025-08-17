@@ -75,10 +75,152 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
+// FHIR R4 Coverage for insurance eligibility
+export const coverage = pgTable("coverage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").references(() => patients.id).notNull(),
+  status: text("status").notNull().default("active"), // active, cancelled, draft, entered-in-error
+  type: text("type").notNull(), // insurance plan type
+  subscriberId: text("subscriber_id").notNull(),
+  beneficiaryId: text("beneficiary_id"),
+  relationship: text("relationship").default("self"), // self, spouse, child, etc.
+  period: text("period"), // JSON string for period coverage
+  payor: text("payor").notNull(), // insurance company
+  class: text("class"), // JSON array of coverage classes
+  network: text("network"),
+  costToBeneficiary: text("cost_to_beneficiary"), // JSON for copays/deductibles
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// FHIR R4 Communication for messaging
+export const communications = pgTable("communications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  status: text("status").notNull().default("completed"), // preparation, in-progress, not-done, on-hold, stopped, completed, entered-in-error, unknown
+  category: text("category").notNull(), // alert, notification, reminder, instruction
+  priority: text("priority").default("routine"), // routine, urgent, asap, stat
+  subject: varchar("subject").references(() => patients.id).notNull(),
+  about: text("about"), // reference to what communication is about
+  encounter: text("encounter"), // encounter reference
+  sent: timestamp("sent").defaultNow(),
+  received: timestamp("received"),
+  recipient: text("recipient").notNull(), // patient, practitioner, etc.
+  sender: text("sender").notNull(),
+  reasonCode: text("reason_code"), // why communication was sent
+  reasonReference: text("reason_reference"), // reference to condition/observation
+  payload: text("payload").notNull(), // actual message content as JSON
+  note: text("note"), // additional notes
+  medium: text("medium").notNull().default("sms"), // sms, email, phone, secure-portal
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// AI Agent Sessions for conversation tracking
+export const aiSessions = pgTable("ai_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").references(() => patients.id),
+  sessionType: text("session_type").notNull(), // scheduling, eligibility, general
+  status: text("status").notNull().default("active"), // active, completed, expired
+  channel: text("channel").notNull(), // sms, web, phone, email
+  phoneNumber: text("phone_number"),
+  email: text("email"),
+  startedAt: timestamp("started_at").defaultNow(),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  context: text("context"), // JSON context data
+  audit: text("audit"), // JSON audit trail
+});
+
+// AI Messages for conversation history
+export const aiMessages = pgTable("ai_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").references(() => aiSessions.id).notNull(),
+  role: text("role").notNull(), // user, assistant, system
+  content: text("content").notNull(),
+  metadata: text("metadata"), // JSON metadata like confidence, sources, etc.
+  timestamp: timestamp("timestamp").defaultNow(),
+  processed: boolean("processed").default(false),
+  tools: text("tools"), // JSON array of tools used
+});
+
+// Appointment slots and availability
+export const appointmentSlots = pgTable("appointment_slots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  providerId: text("provider_id").notNull(),
+  locationId: text("location_id").notNull(),
+  serviceType: text("service_type").notNull(), // cardiology, general, specialist
+  date: date("date").notNull(),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time").notNull(),
+  status: text("status").default("available"), // available, booked, blocked, tentative
+  duration: integer("duration").notNull(), // minutes
+  specialtyRequired: text("specialty_required"),
+  locationName: text("location_name").notNull(),
+  providerName: text("provider_name").notNull(),
+});
+
+// Referrals for specialist appointments
+export const referrals = pgTable("referrals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").references(() => patients.id).notNull(),
+  fromProvider: text("from_provider").notNull(), // PCP details
+  toProvider: text("to_provider"), // specialist details
+  specialty: text("specialty").notNull(), // required specialty
+  reason: text("reason").notNull(), // medical reason
+  icdCodes: text("icd_codes").notNull(), // JSON array of diagnosis codes
+  status: text("status").default("requested"), // requested, approved, denied, expired
+  validFrom: date("valid_from").notNull(),
+  validTo: date("valid_to").notNull(),
+  authNumber: text("auth_number"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
 });
 
+export const insertCoverageSchema = createInsertSchema(coverage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommunicationSchema = createInsertSchema(communications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAISessionSchema = createInsertSchema(aiSessions).omit({
+  id: true,
+  startedAt: true,
+  lastActivity: true,
+});
+
+export const insertAIMessageSchema = createInsertSchema(aiMessages).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertAppointmentSlotSchema = createInsertSchema(appointmentSlots).omit({
+  id: true,
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertCoverage = z.infer<typeof insertCoverageSchema>;
+export type Coverage = typeof coverage.$inferSelect;
+export type InsertCommunication = z.infer<typeof insertCommunicationSchema>;
+export type Communication = typeof communications.$inferSelect;
+export type InsertAISession = z.infer<typeof insertAISessionSchema>;
+export type AISession = typeof aiSessions.$inferSelect;
+export type InsertAIMessage = z.infer<typeof insertAIMessageSchema>;
+export type AIMessage = typeof aiMessages.$inferSelect;
+export type InsertAppointmentSlot = z.infer<typeof insertAppointmentSlotSchema>;
+export type AppointmentSlot = typeof appointmentSlots.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;
