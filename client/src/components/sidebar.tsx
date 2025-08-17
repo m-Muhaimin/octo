@@ -1,4 +1,8 @@
-import { User, Crown, ChevronDown, X } from "lucide-react";
+import { 
+  User, Crown, ChevronDown, X, LayoutDashboard, Users, MessageSquare, 
+  Calendar, Bot, FileText, CreditCard, Settings, MessageCircle, 
+  HelpCircle, Stethoscope 
+} from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "@/hooks/use-toast";
 import UserMenu from "@/components/modals/user-menu";
@@ -12,19 +16,19 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [location, setLocation] = useLocation();
 
   const navigationItems = [
-    { icon: "th-large", label: "Dashboard", path: "/dashboard" },
-    { icon: "users", label: "Patients", path: "/patients" },
-    { icon: "envelope", label: "Messages", path: "/messages" },
-    { icon: "calendar-alt", label: "Appointments", path: "/appointments" },
-    { icon: "robot", label: "AI Scheduling", path: "/ai-scheduling" },
-    { icon: "file-invoice", label: "Billing", path: "/billing" },
-    { icon: "credit-card", label: "Transactions", path: "/transactions" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: Users, label: "Patients", path: "/patients" },
+    { icon: MessageSquare, label: "Messages", path: "/messages" },
+    { icon: Calendar, label: "Appointments", path: "/appointments" },
+    { icon: Bot, label: "AI Scheduling", path: "/ai-scheduling" },
+    { icon: FileText, label: "Billing", path: "/billing" },
+    { icon: CreditCard, label: "Transactions", path: "/transactions" },
   ];
 
   const toolItems = [
-    { icon: "cog", label: "Settings", path: "/settings" },
-    { icon: "comments", label: "Chat & Support", path: null },
-    { icon: "question-circle", label: "Help Center", path: null },
+    { icon: Settings, label: "Settings", path: "/settings" },
+    { icon: MessageCircle, label: "Chat & Support", path: null },
+    { icon: HelpCircle, label: "Help Center", path: null },
   ];
 
   return (
@@ -40,7 +44,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Sidebar */}
       <div className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-72 bg-white shadow-sm border-r border-gray-200 flex flex-col
+        w-72 bg-white shadow-sm border-r-[5px] border-gray-200 flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
@@ -49,7 +53,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-medisight-teal rounded-md flex items-center justify-center">
-                <i className="fas fa-stethoscope text-white text-xs"></i>
+                <Stethoscope className="h-3 w-3 text-white" />
               </div>
               <span className="font-medium text-base text-text-primary">Medisight</span>
             </div>
@@ -82,7 +86,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   }`}
                   data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  <i className={`fas fa-${item.icon} w-4 text-xs`}></i>
+                  <item.icon className="h-4 w-4" />
                   <span className="font-medium">{item.label}</span>
                 </button>
               </li>
@@ -115,7 +119,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     }`}
                     data-testid={`tool-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                   >
-                    <i className={`fas fa-${item.icon} w-4 text-xs`}></i>
+                    <item.icon className="h-4 w-4" />
                     <span className="font-medium">{item.label}</span>
                   </button>
                 </li>

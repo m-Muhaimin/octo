@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Users, CalendarCheck, DollarSign, Activity } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface MetricCardProps {
@@ -11,26 +11,28 @@ interface MetricCardProps {
 }
 
 export default function MetricCard({ icon, title, value, growth, "data-testid": testId }: MetricCardProps) {
-  const getIconClass = (iconName: string) => {
+  const getIconComponent = (iconName: string) => {
     switch (iconName) {
       case "users":
-        return "fas fa-users";
+        return Users;
       case "calendar-check":
-        return "fas fa-calendar-check";
+        return CalendarCheck;
       case "dollar-sign":
-        return "fas fa-dollar-sign";
+        return DollarSign;
       case "procedures":
-        return "fas fa-procedures";
+        return Activity;
       default:
-        return "fas fa-circle";
+        return Activity;
     }
   };
 
+  const IconComponent = getIconComponent(icon);
+
   return (
-    <div className="bg-white rounded-lg p-5 border border-gray-200 shadow-sm" data-testid={testId}>
+    <div className="bg-white rounded-lg p-5 border-[5px] border-gray-200 shadow-sm" data-testid={testId}>
       <div className="flex items-center justify-between mb-3">
         <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center">
-          <i className={`${getIconClass(icon)} text-text-secondary text-sm`}></i>
+          <IconComponent className="h-4 w-4 text-text-secondary" />
         </div>
         <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
           {growth}
