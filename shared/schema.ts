@@ -74,6 +74,8 @@ export const insertChartDataSchema = createInsertSchema(chartData).omit({
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
+}).extend({
+  transactionDate: z.string().optional().transform((val) => val ? new Date(val) : new Date()),
 });
 
 export type InsertPatient = z.infer<typeof insertPatientSchema>;

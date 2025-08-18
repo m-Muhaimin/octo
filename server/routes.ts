@@ -272,11 +272,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", async (req, res) => {
     try {
+      console.log("Raw request body:", req.body);
       const validatedData = insertTransactionSchema.parse(req.body);
+      console.log("Validated data:", validatedData);
       const transaction = await storage.createTransaction(validatedData);
       res.status(201).json(transaction);
     } catch (error) {
       console.error("Transaction creation error:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+      }
       res.status(400).json({ message: "Invalid transaction data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });

@@ -60,7 +60,7 @@ export default function CreateInvoiceModal({ open, onOpenChange, onInvoiceCreate
         type: "charge" as const,
         description: `Invoice: ${data.service}${data.description ? ` - ${data.description}` : ''}`,
         paymentMethod: "cash" as const, // Use valid payment method
-        transactionDate: new Date().toISOString(), // Use ISO string for API
+        // Don't send transactionDate - let it default on server
       };
       
       return apiRequest("/api/transactions", {
