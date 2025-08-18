@@ -34,7 +34,7 @@ export default function Transactions() {
   // Convert database transactions to display format
   const transactions: Transaction[] = dbTransactions.map((dbTx) => ({
     id: dbTx.id,
-    type: dbTx.type === 'charge' ? 'income' : dbTx.type === 'payment' ? 'expense' : 'income',
+    type: getTransactionType(dbTx.type),
     description: dbTx.description || 'Transaction',
     category: getCategoryFromDescription(dbTx.description || ''),
     amount: parseFloat(dbTx.amount),
@@ -43,6 +43,15 @@ export default function Transactions() {
     status: getTransactionDisplayStatus(dbTx),
     reference: dbTx.description?.includes('Invoice:') ? `INV-${dbTx.id.slice(-3)}` : undefined,
   }));
+
+  function getTransactionType(dbType: string): 'income' | 'expense' {
+    switch (dbType) {
+      case 'charge': return 'income';      // Charge/invoice = money coming in
+      case 'payment': return 'income';     // Payment received = money coming in  
+      case 'refund': return 'expense';     // Refund given = money going out
+      default: return 'income';
+    }
+  }
 
   function getCategoryFromDescription(description: string): string {
     if (description.includes('Invoice:')) return 'Medical Services';

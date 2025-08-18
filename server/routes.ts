@@ -145,10 +145,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate completed appointments (treatments)
       const completedAppointments = appointments.filter(apt => apt.status === 'completed').length;
       
-      // Calculate actual income from completed charge transactions
+      // Calculate actual income (charges + payments) minus expenses (refunds)
       const totalIncome = transactions
-        .filter(t => t.type === "charge" && (t.status === "completed" || !t.status))
+        .filter(t => (t.type === "charge" || t.type === "payment") && (t.status === "completed" || !t.status))
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      
+      const totalExpenses = transactions
+        .filter(t => t.type === "refund" && (t.status === "completed" || !t.status))
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      
+      const netIncome = totalIncome - totalExpenses;
       
       // Growth calculations (simplified - in reality this would compare with previous period)
       const patientGrowth = "+12%";
@@ -160,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: "dynamic-metrics",
         totalPatients,
         totalAppointments,
-        totalIncome,
+        totalIncome: netIncome, // Show net income (revenue - expenses)
         totalTreatments: completedAppointments,
         patientGrowth,
         appointmentGrowth,
