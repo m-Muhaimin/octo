@@ -46,14 +46,6 @@ author = 46494847
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx drizzle-kit pull"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx drizzle-kit migrate"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
 args = "npm run db:push"
 
 [agent]

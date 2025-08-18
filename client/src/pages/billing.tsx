@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import CreateInvoiceModal from "@/components/modals/create-invoice-modal";
+import type { Transaction } from "@shared/schema";
 
 interface BillingRecord {
   id: string;
@@ -19,49 +22,36 @@ interface BillingRecord {
 export default function Billing() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showCreateInvoice, setShowCreateInvoice] = useState(false);
 
-  const billingRecords: BillingRecord[] = [
-    {
-      id: "INV-001",
-      patientName: "Brooklyn Simmons",
-      patientId: "#OMT23AA",
-      service: "Allergy Testing",
-      amount: 250.00,
-      status: "paid",
-      date: "2024-08-15",
-      dueDate: "2024-08-30",
-    },
-    {
-      id: "INV-002", 
-      patientName: "Jenny Wilson",
-      patientId: "#JW345II",
-      service: "Routine Checkup",
-      amount: 150.00,
-      status: "pending",
-      date: "2024-08-14",
-      dueDate: "2024-08-29",
-    },
-    {
-      id: "INV-003",
-      patientName: "Robert Fox",
-      patientId: "#RF012HH",
-      service: "Surgery Consultation",
-      amount: 500.00,
-      status: "overdue",
-      date: "2024-08-10",
-      dueDate: "2024-08-25",
-    },
-    {
-      id: "INV-004",
-      patientName: "Kristin Watson",
-      patientId: "#KW678JJ",
-      service: "Mental Health Assessment",
-      amount: 200.00,
-      status: "paid",
-      date: "2024-08-12",
-      dueDate: "2024-08-27",
-    },
-  ];
+  // Fetch real transactions from the API
+  const { data: transactions = [], isLoading } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions"],
+  });
+
+  // Convert transactions to billing records format
+  const billingRecords: BillingRecord[] = transactions
+    .filter(transaction => transaction.type === "charge")
+    .map((transaction, index) => ({
+      id: `INV-${String(index + 1).padStart(3, '0')}`,
+      patientName: `Patient ${transaction.patientId.slice(-4)}`, // Simplified - in real app would join with patient data
+      patientId: `#${transaction.patientId.slice(-8).toUpperCase()}`,
+      service: transaction.description?.replace('Invoice: ', '') || 'Medical Service',
+      amount: parseFloat(transaction.amount),
+      status: getTransactionStatus(transaction),
+      date: new Date(transaction.transactionDate || transaction.createdAt).toISOString().split('T')[0],
+      dueDate: new Date(new Date(transaction.transactionDate || transaction.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    }));
+
+  function getTransactionStatus(transaction: Transaction): 'paid' | 'pending' | 'overdue' {
+    if (transaction.type === 'payment') return 'paid';
+    
+    const dueDate = new Date(transaction.transactionDate || transaction.createdAt);
+    dueDate.setDate(dueDate.getDate() + 30); // 30 days to pay
+    
+    if (new Date() > dueDate) return 'overdue';
+    return 'pending';
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -108,7 +98,10 @@ export default function Billing() {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button className="bg-medisight-teal hover:bg-medisight-dark-teal">
+          <Button 
+            className="bg-medisight-teal hover:bg-medisight-dark-teal"
+            onClick={() => setShowCreateInvoice(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Invoice
           </Button>
@@ -223,7 +216,13 @@ export default function Billing() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredRecords.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-text-secondary">
+                    Loading invoices...
+                  </td>
+                </tr>
+              ) : filteredRecords.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-text-secondary">
                     {searchTerm ? "No invoices found matching your search" : "No invoices available"}
@@ -277,6 +276,15 @@ export default function Billing() {
           </table>
         </div>
       </div>
+
+      {/* Create Invoice Modal */}
+      <CreateInvoiceModal 
+        open={showCreateInvoice}
+        onOpenChange={setShowCreateInvoice}
+        onInvoiceCreated={() => {
+          // Optional callback when invoice is created
+        }}
+      />
     </div>
   );
 }
