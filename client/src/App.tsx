@@ -12,6 +12,7 @@ import Billing from "@/pages/billing";
 import Transactions from "@/pages/transactions";
 import Settings from "@/pages/settings";
 import PatientScheduling from "@/components/patient-scheduling";
+import AIDashboard from "@/pages/agent-dashboard";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
@@ -27,8 +28,8 @@ function AppContent() {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const toggleSidebar = () => {
@@ -36,25 +37,26 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-[100VH] bg-white">
       <Sidebar isOpen={sidebarOpen} onToggle={toggleSidebar} />
-      
+
       <div className="flex-1 overflow-hidden min-w-0 flex flex-col">
         <div className="sticky top-0 z-10">
           <Header onSidebarToggle={toggleSidebar} />
         </div>
-        
+
         <div className="flex-1 overflow-auto">
           <Switch>
-            <Route path="/" component={Dashboard}/>
-            <Route path="/dashboard" component={Dashboard}/>
-            <Route path="/patients" component={Patients}/>
-            <Route path="/appointments" component={Appointments}/>
-            <Route path="/messages" component={Messages}/>
-            <Route path="/billing" component={Billing}/>
-            <Route path="/transactions" component={Transactions}/>
-            <Route path="/settings" component={Settings}/>
-            <Route path="/ai-scheduling" component={PatientScheduling}/>
+            <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/patients" component={Patients} />
+            <Route path="/appointments" component={Appointments} />
+            <Route path="/messages" component={Messages} />
+            <Route path="/billing" component={Billing} />
+            <Route path="/transactions" component={Transactions} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/ai-agent" component={PatientScheduling} />
+            <Route path="/agent-overview" component={AIDashboard} />
             <Route component={NotFound} />
           </Switch>
         </div>

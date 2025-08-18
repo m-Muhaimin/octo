@@ -20,7 +20,9 @@ export default function Dashboard() {
     queryKey: ["/api/patients"],
   });
 
-  const { data: appointments, isLoading: appointmentsLoading } = useQuery<Appointment[]>({
+  const { data: appointments, isLoading: appointmentsLoading } = useQuery<
+    Appointment[]
+  >({
     queryKey: ["/api/appointments"],
   });
 
@@ -29,29 +31,37 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="p-6 bg-white">
+      <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-text-primary mb-1">Dashboard</h2>
-            <p className="text-sm text-text-secondary">Overview of all of your patients and your income</p>
+            <h2 className="text-lg font-semibold text-text-primary mb-1">
+              Dashboard
+            </h2>
+            <p className="text-sm text-text-secondary">
+              Overview of all of your patients and your income
+            </p>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview" data-testid="tab-overview">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="ai-agent" data-testid="tab-ai-agent">
-            <Bot className="w-4 h-4 mr-2" />
-            AI Agent
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4" data-testid="content-overview">
-
+        <div className="flex items-center justify-center">
+          <TabsList className="grid w-80 grid-cols-2">
+            <TabsTrigger value="overview" data-testid="tab-overview">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="ai-agent" data-testid="tab-ai-agent">
+              <Bot className="w-4 h-4 mr-2" />
+              AI Agent
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent
+          value="overview"
+          className="space-y-4"
+          data-testid="content-overview"
+        >
           {/* Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {metricsLoading ? (
@@ -104,8 +114,10 @@ export default function Dashboard() {
               ) : chartData ? (
                 <OverviewChart data={chartData} />
               ) : (
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm h-80 flex items-center justify-center">
-                  <span className="text-text-secondary">Failed to load chart data</span>
+                <div className="bg-white rounded-[8px] p-6 border border-gray-200 shadow-sm h-80 flex items-center justify-center">
+                  <span className="text-text-secondary">
+                    Failed to load chart data
+                  </span>
                 </div>
               )}
             </div>
@@ -116,8 +128,10 @@ export default function Dashboard() {
               ) : appointments ? (
                 <AppointmentList appointments={appointments} />
               ) : (
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm h-80 flex items-center justify-center">
-                  <span className="text-text-secondary">Failed to load appointments</span>
+                <div className="bg-white rounded-[8px] p-6 border border-gray-200 shadow-sm h-80 flex items-center justify-center">
+                  <span className="text-text-secondary">
+                    Failed to load appointments
+                  </span>
                 </div>
               )}
             </div>
@@ -130,7 +144,9 @@ export default function Dashboard() {
             <PatientTable patients={patients} />
           ) : (
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm h-96 flex items-center justify-center">
-              <span className="text-text-secondary">Failed to load patients data</span>
+              <span className="text-text-secondary">
+                Failed to load patients data
+              </span>
             </div>
           )}
         </TabsContent>

@@ -5,7 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import CreateModal from "@/components/modals/create-modal";
 import NotificationsModal from "@/components/modals/notifications-modal";
+import Sidebar from "@/components/sidebar";
 import type { Patient, Appointment } from "@shared/schema";
+import { SidebarMenuItem } from "./ui/sidebar";
 
 interface HeaderProps {
   onSidebarToggle: () => void;
@@ -56,7 +58,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-gray-300 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
@@ -67,8 +69,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
               <Menu className="h-4 w-4 text-text-secondary" />
             </button>
             <div className="flex items-center space-x-2">
-              <span className="text-lg">👋</span>
-              <h1 className="text-lg font-medium text-text-primary">Good Morning, Dr. Robert!</h1>
+              <h1 className="text-lg font-medium text-text-primary">Page Title</h1>
             </div>
           </div>
           <div className="flex items-center space-x-3">
