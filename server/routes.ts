@@ -4,10 +4,14 @@ import { storage } from "./storage";
 import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema, insertTransactionSchema } from "@shared/schema";
 import aiRoutes from "./ai-routes";
 import { initializeHealthcareAgent } from "./ai-agent-deepseek";
+import { AIAnalyticsEngine } from "./ai-analytics";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize AI agent with storage
   initializeHealthcareAgent(storage);
+  
+  // Initialize AI Analytics Engine
+  const aiAnalytics = new AIAnalyticsEngine(storage);
   
   // Register AI routes
   app.use("/api", aiRoutes);
@@ -323,7 +327,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Agent endpoints
+  // Enhanced AI Analytics endpoint with real data and streaming
+  app.post("/api/ai/analyze", async (req, res) => {
+    try {
+      const { query, dataTypes = ['patients', 'appointments', 'transactions', 'metrics'] } = req.body;
+
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query is required and must be a string' });
+      }
+
+      // Set headers for Server-Sent Events (SSE)
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      // Gather real management data
+      const managementData = await aiAnalytics.gatherManagementData(dataTypes);
+
+      // Stream the AI analysis response
+      for await (const chunk of aiAnalytics.streamAnalysis(query, managementData)) {
+        res.write(chunk);
+      }
+
+      res.end();
+    } catch (error) {
+      console.error('AI Analytics error:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze data',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // AI Agent endpoints (legacy support)
   app.post("/api/ai/query", async (req, res) => {
     const { query, context, patient_id } = req.body;
     

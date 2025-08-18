@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import AIAssistantModal from "@/components/modals/ai-assistant-modal";
+import EnhancedAIAssistantModal from "@/components/modals/enhanced-ai-assistant-modal";
 import EHRSyncModal from "@/components/modals/ehr-sync-modal";
 
 interface AIMetric {
@@ -328,7 +328,7 @@ export default function AIDashboard() {
       </div>
 
       {/* AI Assistant Modal */}
-      <AIAssistantModal 
+      <EnhancedAIAssistantModal 
         open={showAIAssistant} 
         onOpenChange={setShowAIAssistant}
       />
