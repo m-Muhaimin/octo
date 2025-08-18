@@ -60,6 +60,7 @@ export default function CreateInvoiceModal({ open, onOpenChange, onInvoiceCreate
         type: "charge" as const,
         description: `Invoice: ${data.service}${data.description ? ` - ${data.description}` : ''}`,
         paymentMethod: "cash" as const, // Use valid payment method
+        status: data.status, // Use the status from the form
         // Don't send transactionDate - let it default on server
       };
       

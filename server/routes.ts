@@ -136,6 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get real-time data
       const patients = await storage.getAllPatients();
       const appointments = await storage.getAllAppointments();
+      const transactions = await storage.getAllTransactions();
       
       // Calculate dynamic metrics
       const totalPatients = patients.length;
@@ -144,8 +145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate completed appointments (treatments)
       const completedAppointments = appointments.filter(apt => apt.status === 'completed').length;
       
-      // Mock income calculation (in a real app, this would be from transactions)
-      const totalIncome = completedAppointments * 150; // $150 average per treatment
+      // Calculate actual income from completed charge transactions
+      const totalIncome = transactions
+        .filter(t => t.type === "charge" && (t.status === "completed" || !t.status))
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
       
       // Growth calculations (simplified - in reality this would compare with previous period)
       const patientGrowth = "+12%";

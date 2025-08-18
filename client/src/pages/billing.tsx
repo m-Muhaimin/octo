@@ -44,6 +44,15 @@ export default function Billing() {
     }));
 
   function getTransactionStatus(transaction: Transaction): 'paid' | 'pending' | 'overdue' {
+    // Use the actual status from the transaction if it exists
+    if ('status' in transaction && transaction.status) {
+      const status = transaction.status;
+      if (status === 'completed') return 'paid';
+      if (status === 'overdue') return 'overdue';
+      if (status === 'pending') return 'pending';
+    }
+    
+    // Fallback logic for older transactions without status
     if (transaction.type === 'payment') return 'paid';
     
     const dueDate = new Date(transaction.transactionDate || transaction.createdAt || new Date());
@@ -74,7 +83,10 @@ export default function Billing() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalRevenue = billingRecords.reduce((sum, record) => sum + record.amount, 0);
+  // Only count paid invoices as actual revenue
+  const totalRevenue = billingRecords
+    .filter(record => record.status === 'paid')
+    .reduce((sum, record) => sum + record.amount, 0);
   const paidAmount = billingRecords
     .filter(record => record.status === 'paid')
     .reduce((sum, record) => sum + record.amount, 0);

@@ -38,7 +38,7 @@ export default function Transactions() {
     amount: parseFloat(dbTx.amount),
     date: new Date(dbTx.transactionDate || dbTx.createdAt || new Date()).toISOString().split('T')[0],
     paymentMethod: formatPaymentMethod(dbTx.paymentMethod),
-    status: 'completed',
+    status: getTransactionDisplayStatus(dbTx),
     reference: dbTx.description?.includes('Invoice:') ? `INV-${dbTx.id.slice(-3)}` : undefined,
   }));
 
@@ -57,6 +57,17 @@ export default function Transactions() {
       case 'insurance': return 'Insurance';
       default: return method;
     }
+  }
+
+  function getTransactionDisplayStatus(dbTx: DBTransaction): 'completed' | 'pending' | 'failed' {
+    if ('status' in dbTx && dbTx.status) {
+      const status = dbTx.status;
+      if (status === 'completed') return 'completed';
+      if (status === 'pending') return 'pending';
+      if (status === 'failed') return 'failed';
+      if (status === 'overdue') return 'failed'; // Show overdue as failed in transactions view
+    }
+    return 'completed'; // Default for older transactions
   }
 
   // Combine real data with mock data for demo

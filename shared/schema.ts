@@ -48,6 +48,7 @@ export const transactions = pgTable("transactions", {
   patientId: text("patient_id").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   type: text("type").notNull(), // payment, refund, charge
+  status: text("status").notNull().default("pending"), // pending, completed, overdue, failed
   description: text("description"),
   paymentMethod: text("payment_method").notNull(), // cash, card, insurance, bank_transfer
   transactionDate: timestamp("transaction_date").defaultNow(),
