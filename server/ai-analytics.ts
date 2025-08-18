@@ -1,3 +1,4 @@
+import OpenAI from 'openai';
 import type { 
   Patient, 
   Appointment, 
@@ -176,40 +177,78 @@ Remember: Only use the actual data provided above. If insufficient data exists f
   async *streamAnalysis(query: string, managementData: ManagementData): AsyncGenerator<string, void, unknown> {
     const prompt = this.generateAnalysisPrompt(query, managementData);
     
-    // Simulate streaming response - in production, this would use actual AI streaming
-    const sections = [
-      '**ANALYSIS SUMMARY**\n',
-      `Based on your current practice data, I've analyzed ${managementData.summary.totalPatients} patients, ${managementData.summary.totalAppointments} appointments, and ${managementData.transactions?.length || 0} transactions to provide insights relevant to your query.\n\n`,
-      
-      '**KEY FINDINGS**\n',
-      `• Financial Performance: Net income of $${managementData.summary.netIncome.toFixed(2)} (Revenue: $${managementData.summary.totalRevenue.toFixed(2)}, Expenses: $${managementData.summary.totalExpenses.toFixed(2)})\n`,
-      `• Appointment Efficiency: ${managementData.summary.completedAppointments} completed appointments with ${managementData.summary.upcomingAppointments} scheduled\n`,
-      `• Patient Volume: ${managementData.summary.totalPatients} total patients in the system\n`,
-      `• Transaction Status: ${managementData.summary.pendingTransactions} pending transactions requiring attention\n\n`,
-      
-      '**ACTIONABLE RECOMMENDATIONS**\n',
-      `• Focus on the ${managementData.summary.pendingTransactions} pending transactions to improve cash flow\n`,
-      `• Optimize scheduling to maintain the current appointment completion rate\n`,
-      `• Monitor revenue trends - current net income indicates ${managementData.summary.netIncome > 0 ? 'healthy' : 'concerning'} financial performance\n\n`,
-      
-      '**DATA INSIGHTS**\n'
-    ];
+    try {
+      // Initialize DeepSeek API client
+      const deepseek = new OpenAI({
+        apiKey: process.env.DEEPSEEK_API_KEY || '',
+        baseURL: 'https://api.deepseek.com/v1'
+      });
 
-    // Add specific insights based on actual data
-    if (managementData.transactions?.length > 0) {
-      const recentTransactions = managementData.transactions.slice(0, 3);
-      sections.push(`Recent transaction activity shows ${recentTransactions.length} recent transactions, with the latest being a ${recentTransactions[0]?.type} of $${recentTransactions[0]?.amount}.\n`);
-    }
+      if (!process.env.DEEPSEEK_API_KEY) {
+        throw new Error('DEEPSEEK_API_KEY not configured');
+      }
 
-    if (managementData.appointments?.length > 0) {
-      const upcomingCount = managementData.appointments.filter(a => a.status === 'scheduled').length;
-      sections.push(`Appointment scheduling shows ${upcomingCount} upcoming appointments, indicating ${upcomingCount > 5 ? 'good' : 'low'} patient engagement.\n`);
-    }
+      console.log('🤖 Starting DeepSeek AI analysis...');
+      
+      // Stream response from DeepSeek API
+      const response = await deepseek.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert AI assistant for medical practice management. Analyze real practice data and provide structured, actionable insights. Always use the actual data provided - never use placeholders or mock data.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        stream: true,
+        max_tokens: 2000,
+        temperature: 0.3
+      });
 
-    // Stream each section with realistic delays
-    for (const section of sections) {
-      await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
-      yield section;
+      console.log('✅ DeepSeek API response received, streaming...');
+      
+      let hasContent = false;
+      
+      // Stream the response chunks
+      for await (const chunk of response) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          hasContent = true;
+          yield content;
+        }
+      }
+      
+      if (!hasContent) {
+        throw new Error('No content received from DeepSeek API');
+      }
+      
+      console.log('✅ DeepSeek streaming completed successfully');
+
+    } catch (error) {
+      console.error('DeepSeek API error:', error);
+      
+      // Fallback to structured response with real data if API fails
+      yield `⚠️ **AI Analysis** (API Error - Using Fallback)\n\n`;
+      yield `**ANALYSIS SUMMARY**\n`;
+      yield `Based on your current practice data, I've analyzed ${managementData.summary.totalPatients} patients, ${managementData.summary.totalAppointments} appointments, and ${managementData.transactions?.length || 0} transactions.\n\n`;
+      
+      yield `**KEY FINDINGS**\n`;
+      yield `• Financial Performance: Net income of $${managementData.summary.netIncome.toFixed(2)} (Revenue: $${managementData.summary.totalRevenue.toFixed(2)}, Expenses: $${managementData.summary.totalExpenses.toFixed(2)})\n`;
+      yield `• Appointment Efficiency: ${managementData.summary.completedAppointments} completed appointments with ${managementData.summary.upcomingAppointments} scheduled\n`;
+      yield `• Patient Volume: ${managementData.summary.totalPatients} total patients in the system\n`;
+      yield `• Transaction Status: ${managementData.summary.pendingTransactions} pending transactions requiring attention\n\n`;
+      
+      yield `**ACTIONABLE RECOMMENDATIONS**\n`;
+      yield `• Focus on the ${managementData.summary.pendingTransactions} pending transactions to improve cash flow\n`;
+      yield `• ${managementData.summary.netIncome < 0 ? 'Urgent: Review expenses and improve revenue collection' : 'Continue monitoring financial performance trends'}\n`;
+      yield `• Optimize appointment scheduling to reduce no-shows and improve efficiency\n\n`;
+      
+      yield `**ERROR NOTE**\n`;
+      yield `DeepSeek API is currently unavailable. This analysis uses real practice data but with limited AI insights. Contact support if this issue persists.\n`;
+      yield `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
   }
 }
