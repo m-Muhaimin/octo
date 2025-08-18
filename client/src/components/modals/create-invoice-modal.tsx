@@ -56,11 +56,11 @@ export default function CreateInvoiceModal({ open, onOpenChange, onInvoiceCreate
       // Create a transaction for the invoice
       const transactionData = {
         patientId: data.patientId,
-        amount: parseFloat(data.amount),
+        amount: data.amount, // Keep as string for schema validation
         type: "charge" as const,
         description: `Invoice: ${data.service}${data.description ? ` - ${data.description}` : ''}`,
-        paymentMethod: "card" as const,
-        transactionDate: new Date().toISOString(),
+        paymentMethod: "cash" as const, // Use valid payment method
+        transactionDate: new Date().toISOString(), // Use ISO string for API
       };
       
       return apiRequest("/api/transactions", {
@@ -209,7 +209,7 @@ export default function CreateInvoiceModal({ open, onOpenChange, onInvoiceCreate
                     <Input 
                       type="date" 
                       {...field}
-                      defaultValue={getDefaultDueDate()}
+                      placeholder={getDefaultDueDate()}
                     />
                   </FormControl>
                   <FormMessage />

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import type { Transaction as DBTransaction } from "@shared/schema";
 
 interface Transaction {
   id: string;
@@ -22,60 +24,68 @@ export default function Transactions() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const transactions: Transaction[] = [
-    {
-      id: "TXN-001",
-      type: "income",
-      description: "Consultation Fee - Brooklyn Simmons",
-      category: "Medical Services",
-      amount: 150.00,
-      date: "2024-08-15",
-      paymentMethod: "Credit Card",
-      status: "completed",
-      reference: "INV-001",
-    },
-    {
-      id: "TXN-002",
-      type: "expense", 
-      description: "Medical Equipment Purchase",
-      category: "Equipment",
-      amount: 2500.00,
-      date: "2024-08-14",
-      paymentMethod: "Bank Transfer",
-      status: "completed",
-    },
-    {
-      id: "TXN-003",
-      type: "income",
-      description: "Lab Test Fee - Jenny Wilson",
-      category: "Laboratory",
-      amount: 85.00,
-      date: "2024-08-14",
-      paymentMethod: "Cash",
-      status: "completed",
-      reference: "INV-002",
-    },
-    {
-      id: "TXN-004",
-      type: "expense",
-      description: "Office Rent Payment",
-      category: "Rent & Utilities",
-      amount: 3000.00,
-      date: "2024-08-13",
-      paymentMethod: "Bank Transfer",
-      status: "completed",
-    },
-    {
-      id: "TXN-005",
-      type: "income",
-      description: "Surgery Consultation - Robert Fox",
-      category: "Medical Services", 
-      amount: 500.00,
-      date: "2024-08-12",
-      paymentMethod: "Credit Card",
-      status: "pending",
-      reference: "INV-003",
-    },
+  // Fetch real transactions from the API
+  const { data: dbTransactions = [], isLoading } = useQuery<DBTransaction[]>({
+    queryKey: ["/api/transactions"],
+  });
+
+  // Convert database transactions to display format
+  const transactions: Transaction[] = dbTransactions.map((dbTx) => ({
+    id: dbTx.id,
+    type: dbTx.type === 'charge' ? 'income' : dbTx.type === 'payment' ? 'expense' : 'income',
+    description: dbTx.description || 'Transaction',
+    category: getCategoryFromDescription(dbTx.description || ''),
+    amount: parseFloat(dbTx.amount),
+    date: new Date(dbTx.transactionDate || dbTx.createdAt || new Date()).toISOString().split('T')[0],
+    paymentMethod: formatPaymentMethod(dbTx.paymentMethod),
+    status: 'completed',
+    reference: dbTx.description?.includes('Invoice:') ? `INV-${dbTx.id.slice(-3)}` : undefined,
+  }));
+
+  function getCategoryFromDescription(description: string): string {
+    if (description.includes('Invoice:')) return 'Medical Services';
+    if (description.includes('payment')) return 'Patient Payment';
+    if (description.includes('refund')) return 'Refunds';
+    return 'Other';
+  }
+
+  function formatPaymentMethod(method: string): string {
+    switch (method) {
+      case 'card': return 'Credit Card';
+      case 'cash': return 'Cash';
+      case 'bank_transfer': return 'Bank Transfer';
+      case 'insurance': return 'Insurance';
+      default: return method;
+    }
+  }
+
+  // Combine real data with mock data for demo
+  const allTransactions = [
+    ...transactions,
+    // Add some demo transactions if no real data
+    ...(dbTransactions.length === 0 ? [
+      {
+        id: "TXN-001",
+        type: "income" as const,
+        description: "Consultation Fee - Demo Patient",
+        category: "Medical Services",
+        amount: 150.00,
+        date: "2024-08-15",
+        paymentMethod: "Credit Card",
+        status: "completed" as const,
+        reference: "INV-001",
+      },
+      {
+        id: "TXN-002",
+        type: "expense" as const, 
+        description: "Medical Equipment Purchase",
+        category: "Equipment",
+        amount: 2500.00,
+        date: "2024-08-14",
+        paymentMethod: "Bank Transfer",
+        status: "completed" as const,
+      }
+    ] : [])
   ];
 
   const getStatusColor = (status: string) => {
@@ -91,7 +101,7 @@ export default function Transactions() {
     }
   };
 
-  const filteredTransactions = transactions.filter(transaction => {
+  const filteredTransactions = allTransactions.filter(transaction => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -100,16 +110,16 @@ export default function Transactions() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  const totalIncome = transactions
+  const totalIncome = allTransactions
     .filter(t => t.type === 'income' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const totalExpenses = transactions
+  const totalExpenses = allTransactions
     .filter(t => t.type === 'expense' && t.status === 'completed')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netIncome = totalIncome - totalExpenses;
-  const pendingTransactions = transactions.filter(t => t.status === 'pending').length;
+  const pendingTransactions = allTransactions.filter(t => t.status === 'pending').length;
 
   return (
     <div className="p-6 space-y-6">

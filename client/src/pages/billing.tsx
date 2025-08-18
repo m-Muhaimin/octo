@@ -39,14 +39,14 @@ export default function Billing() {
       service: transaction.description?.replace('Invoice: ', '') || 'Medical Service',
       amount: parseFloat(transaction.amount),
       status: getTransactionStatus(transaction),
-      date: new Date(transaction.transactionDate || transaction.createdAt).toISOString().split('T')[0],
-      dueDate: new Date(new Date(transaction.transactionDate || transaction.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      date: new Date(transaction.transactionDate || transaction.createdAt || new Date()).toISOString().split('T')[0],
+      dueDate: new Date(new Date(transaction.transactionDate || transaction.createdAt || new Date()).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     }));
 
   function getTransactionStatus(transaction: Transaction): 'paid' | 'pending' | 'overdue' {
     if (transaction.type === 'payment') return 'paid';
     
-    const dueDate = new Date(transaction.transactionDate || transaction.createdAt);
+    const dueDate = new Date(transaction.transactionDate || transaction.createdAt || new Date());
     dueDate.setDate(dueDate.getDate() + 30); // 30 days to pay
     
     if (new Date() > dueDate) return 'overdue';
