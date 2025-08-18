@@ -219,6 +219,7 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = { 
       ...insertTransaction, 
       id, 
+      description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
       createdAt: new Date()
     };
@@ -230,6 +231,7 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = { 
       ...insertTransaction, 
       id,
+      description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
       createdAt: new Date()
     };
