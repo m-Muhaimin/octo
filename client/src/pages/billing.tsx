@@ -47,7 +47,7 @@ export default function Billing() {
     // Use the actual status from the transaction if it exists
     if ('status' in transaction && transaction.status) {
       const status = transaction.status;
-      if (status === 'completed') return 'paid';
+      if (status === 'completed' || status === 'paid') return 'paid'; // Handle both statuses
       if (status === 'overdue') return 'overdue';
       if (status === 'pending') return 'pending';
     }
