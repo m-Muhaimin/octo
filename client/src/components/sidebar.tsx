@@ -63,7 +63,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <div
         className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-[250px] bg-gray-50 shadow-sm border-r-[1px] border-gray-200 flex flex-col
+        w-[280px] bg-gray-50 shadow-sm border-r-[1px] border-gray-200 flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
@@ -71,7 +71,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Logo */}
         <div className="px-4 ">
           <div className="flex items-center justify-between">
-            <div className="flex flex-row pt-4 pb-2 items-center space-x-2">
+            <div className="flex flex-row pt-4 pb-3 items-center space-x-2">
               <div className="w-9 h-9 bg-medisight-teal rounded-[8px] flex items-center justify-center">
                 <Stethoscope className="h-4 w-4 text-white" />
               </div>
@@ -157,8 +157,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </nav>
 
         {/* Upgrade Section */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="bg-medisight-teal bg-opacity-10 rounded-lg p-3 mb-4">
+        <div className="p-4 border-t border-gray-300">
+          {/* <div className="bg-medisight-teal bg-opacity-10 rounded-lg p-3 mb-4">
             <div className="flex items-center space-x-2 mb-2">
               <div className="w-6 h-6 bg-medisight-teal rounded-full flex items-center justify-center">
                 <Crown className="text-white w-3 h-3" />
@@ -179,22 +179,22 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
             >
               Upgrade plan
             </button>
-          </div>
+          </div> */}
 
           {/* User Profile */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+            <div className="w-9 h-9 bg-gray-300 rounded-[8px] flex items-center justify-center">
               <User className="text-gray-600 w-4 h-4" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-xs text-text-primary">
+              <p className="font-medium text-sm text-text-primary">
                 Robert Fox
               </p>
               <p className="text-xs text-text-secondary">robertfox@email.com</p>
             </div>
             <UserMenu>
               <button
-                className="text-text-secondary hover:text-text-primary"
+                className="text text-[14px] hover:text-text-primary"
                 data-testid="button-user-dropdown"
               >
                 <ChevronDown className="w-3 h-3" />

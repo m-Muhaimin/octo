@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import MetricCard from "@/components/metric-card";
 import OverviewChart from "@/components/overview-chart";
 import AppointmentList from "@/components/appointment-list";
@@ -45,23 +45,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <div className="flex items-center justify-center">
-          <TabsList className="grid w-80 grid-cols-2">
-            <TabsTrigger value="overview" data-testid="tab-overview">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="ai-agent" data-testid="tab-ai-agent">
-              <Bot className="w-4 h-4 mr-2" />
-              AI Agent
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <TabsContent
-          value="overview"
-          className="space-y-4"
-          data-testid="content-overview"
-        >
+      <div className="space-y-4">
+        <div className="space-y-4" data-testid="content-overview">
           {/* Metrics Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {metricsLoading ? (
@@ -149,12 +134,8 @@ export default function Dashboard() {
               </span>
             </div>
           )}
-        </TabsContent>
-
-        <TabsContent value="ai-agent" data-testid="content-ai-agent">
-          <AIDashboard />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
