@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Search, Download, Filter, TrendingUp, TrendingDown, DollarSign, CreditCard } from "lucide-react";
+import { Search, Download, Filter, TrendingUp, TrendingDown, DollarSign, CreditCard, Plus } from "lucide-react";
+import CreateTransactionModal from "@/components/modals/create-transaction-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +24,7 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showCreateTransaction, setShowCreateTransaction] = useState(false);
 
   // Fetch real transactions from the API
   const { data: dbTransactions = [], isLoading } = useQuery<DBTransaction[]>({
@@ -148,6 +150,13 @@ export default function Transactions() {
           <Button variant="outline">
             <Filter className="w-4 h-4 mr-2" />
             Advanced Filter
+          </Button>
+          <Button 
+            className="bg-medisight-teal hover:bg-medisight-dark-teal"
+            onClick={() => setShowCreateTransaction(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Transaction
           </Button>
         </div>
       </div>
@@ -336,6 +345,12 @@ export default function Transactions() {
           </table>
         </div>
       </div>
+
+      {/* Create Transaction Modal */}
+      <CreateTransactionModal
+        open={showCreateTransaction}
+        onOpenChange={setShowCreateTransaction}
+      />
     </div>
   );
 }
