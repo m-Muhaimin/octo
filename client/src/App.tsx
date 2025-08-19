@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useState, useEffect } from "react";
 import Dashboard from "@/pages/dashboard";
 import Patients from "@/pages/patients";
+import EHRPatients from "@/pages/ehr-patients";
 import Appointments from "@/pages/appointments";
 import Messages from "@/pages/messages";
 import Billing from "@/pages/billing";
@@ -51,6 +52,7 @@ function AppContent() {
             <Route path="/" component={Dashboard} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/patients" component={Patients} />
+            <Route path="/ehr-patients" component={EHRPatients} />
             <Route path="/appointments" component={Appointments} />
             <Route path="/messages" component={Messages} />
             <Route path="/billing" component={Billing} />

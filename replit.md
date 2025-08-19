@@ -101,3 +101,11 @@ Preferred communication style: Simple, everyday language.
   - Enhanced AI prompts to analyze actual practice data with structured insights
   - Added proper error handling with fallback responses if API fails
   - AI now provides dynamic, contextual recommendations based on real financial and operational data
+- **External EHR Database Integration (August 19, 2025)**: Added complete integration with external Supabase PostgreSQL database
+  - Created EHRService class for connecting to external EHR database via EHR_DATABASE_URL
+  - Added comprehensive API endpoints: /api/ehr/patients, /api/ehr/search, /api/ehr/import-patient
+  - Built EHR Patients UI page with search, import, and connection status monitoring
+  - Implemented patient data conversion from EHR format to local schema
+  - Added real-time connection testing and error handling for external database
+  - New navigation route /ehr-patients for accessing external patient records
+  - Full integration ready for live EHR database connections
