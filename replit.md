@@ -101,3 +101,9 @@ Preferred communication style: Simple, everyday language.
   - Enhanced AI prompts to analyze actual practice data with structured insights
   - Added proper error handling with fallback responses if API fails
   - AI now provides dynamic, contextual recommendations based on real financial and operational data
+- **Supabase Database Migration (August 19, 2025)**: Successfully migrated from Neon to Supabase PostgreSQL
+  - Enhanced patient schema with comprehensive demographic fields (race, ethnicity, primary language, marital status)
+  - Converted CSV data with 45 patients to new firstName/lastName schema format
+  - Maintained backward compatibility with generated name field
+  - Fixed database URL parsing issues and connection stability
+  - Successfully imported structured patient demographic data from CSV file

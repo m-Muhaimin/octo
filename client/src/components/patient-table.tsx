@@ -26,7 +26,12 @@ export default function PatientTable({ patients }: PatientTableProps) {
     status: 'all',
   });
 
-  const getInitials = (name: string) => {
+  const getInitials = (patient: Patient) => {
+    if (patient.firstName && patient.lastName) {
+      return `${patient.firstName[0]}${patient.lastName[0]}`.toUpperCase();
+    }
+    // Fallback for old schema
+    const name = (patient as any).name || 'Unknown';
     return name
       .split(' ')
       .map(word => word[0])
@@ -35,7 +40,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
       .slice(0, 2);
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (patient: Patient) => {
     const colors = [
       'bg-red-100 text-red-600',
       'bg-blue-100 text-blue-600',
@@ -44,8 +49,17 @@ export default function PatientTable({ patients }: PatientTableProps) {
       'bg-yellow-100 text-yellow-600',
       'bg-indigo-100 text-indigo-600',
     ];
+    const name = patient.firstName && patient.lastName 
+      ? `${patient.firstName} ${patient.lastName}` 
+      : (patient as any).name || 'Unknown';
     const index = name.length % colors.length;
     return colors[index];
+  };
+  
+  const getPatientName = (patient: Patient) => {
+    return patient.firstName && patient.lastName 
+      ? `${patient.firstName} ${patient.lastName}` 
+      : (patient as any).name || 'Unknown Patient';
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -62,9 +76,10 @@ export default function PatientTable({ patients }: PatientTableProps) {
   };
 
   const filteredPatients = patients.filter(patient => {
-    // Search filter
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+    // Search filter - safely handle both old and new schema
+    const patientName = getPatientName(patient);
+    const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.patientId || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     // Department filter
     const matchesDepartment = activeFilters.departments.length === 0 ||
@@ -210,13 +225,13 @@ export default function PatientTable({ patients }: PatientTableProps) {
                   </td>
                   <td className="py-3 px-5">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(patient)}`}>
                         <span className="font-semibold text-xs">
-                          {getInitials(patient.name)}
+                          {getInitials(patient)}
                         </span>
                       </div>
                       <span className="font-medium text-sm text-text-primary" data-testid={`text-patient-name-${index}`}>
-                        {patient.name}
+                        {getPatientName(patient)}
                       </span>
                     </div>
                   </td>
@@ -279,15 +294,15 @@ export default function PatientTable({ patients }: PatientTableProps) {
                   data-testid={`checkbox-patient-mobile-${index}`}
                   className="mt-1"
                 />
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)} flex-shrink-0`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(patient)} flex-shrink-0`}>
                   <span className="font-semibold text-sm">
-                    {getInitials(patient.name)}
+                    {getInitials(patient)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="font-medium text-text-primary truncate" data-testid={`text-patient-name-mobile-${index}`}>
-                      {patient.name}
+                      {getPatientName(patient)}
                     </h4>
                     <span className="text-xs text-text-secondary bg-gray-100 px-2 py-1 rounded ml-2" data-testid={`text-patient-id-mobile-${index}`}>
                       {patient.patientId}

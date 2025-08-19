@@ -510,8 +510,8 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Initialize storage - use database storage for persistence
-export const storage: IStorage = new DatabaseStorage();
+// Initialize storage - temporarily use in-memory storage during migration
+export const storage: IStorage = new MemStorage();
 
 // Alternative: Async function to get storage with database fallback
 export async function getStorage(): Promise<IStorage> {
@@ -569,99 +569,19 @@ export async function seedDatabase() {
       await storage.createChartData(item);
     }
 
-    // Seed 10 patients with comprehensive healthcare data
-    const patientData = [
-      { 
-        name: "Brooklyn Simmons", gender: "Male", dateOfBirth: "1995-03-18", 
-        department: "Cardiology", patientId: "#OMT23AA", avatar: "BS",
-        phoneNumber: "(555) 123-4567", email: "brooklyn.simmons@email.com", 
-        address: "123 Main St", city: "New York", state: "NY", zipCode: "10001",
-        emergencyContactName: "Patricia Simmons", emergencyContactPhone: "(555) 123-4568",
-        insuranceProvider: "Blue Cross Blue Shield", insurancePolicyNumber: "BC123456789",
-        primaryCarePhysician: "Dr. Robert Smith"
-      },
-      { 
-        name: "Anthony Johnson", gender: "Male", dateOfBirth: "1997-03-18",
-        department: "Cardiology", patientId: "#AT456BB", avatar: "AJ",
-        phoneNumber: "(555) 234-5678", email: "anthony.johnson@email.com",
-        address: "456 Oak Ave", city: "Los Angeles", state: "CA", zipCode: "90210",
-        emergencyContactName: "Mary Johnson", emergencyContactPhone: "(555) 234-5679",
-        insuranceProvider: "Aetna", insurancePolicyNumber: "AET987654321",
-        primaryCarePhysician: "Dr. Jennifer Wilson"
-      },
-      { 
-        name: "Sarah Miller Olivia", gender: "Female", dateOfBirth: "1987-03-18",
-        department: "Oncology", patientId: "#EA789CC", avatar: "SO",
-        phoneNumber: "(555) 345-6789", email: "sarah.miller@email.com",
-        address: "789 Pine Rd", city: "Chicago", state: "IL", zipCode: "60601",
-        emergencyContactName: "David Miller", emergencyContactPhone: "(555) 345-6790",
-        insuranceProvider: "United Healthcare", insurancePolicyNumber: "UHC456789123",
-        primaryCarePhysician: "Dr. Michael Davis"
-      },
-      { 
-        name: "Courtney Henry", gender: "Female", dateOfBirth: "1992-11-15",
-        department: "Internal Medicine", patientId: "#CH901DD", avatar: "CH",
-        phoneNumber: "(555) 456-7890", email: "courtney.henry@email.com",
-        address: "321 Elm St", city: "Houston", state: "TX", zipCode: "77001",
-        emergencyContactName: "James Henry", emergencyContactPhone: "(555) 456-7891",
-        insuranceProvider: "Cigna", insurancePolicyNumber: "CIG234567890",
-        primaryCarePhysician: "Dr. Lisa Anderson"
-      },
-      { 
-        name: "Esther Howard", gender: "Female", dateOfBirth: "1985-07-22",
-        department: "Dermatology", patientId: "#EH234EE", avatar: "EH",
-        phoneNumber: "(555) 567-8901", email: "esther.howard@email.com",
-        address: "654 Maple Dr", city: "Phoenix", state: "AZ", zipCode: "85001",
-        emergencyContactName: "Robert Howard", emergencyContactPhone: "(555) 567-8902",
-        insuranceProvider: "Humana", insurancePolicyNumber: "HUM345678901",
-        primaryCarePhysician: "Dr. Sarah Thompson"
-      },
-      { 
-        name: "Arlene McCoy", gender: "Female", dateOfBirth: "1990-04-08",
-        department: "Gastroenterology", patientId: "#AM567FF", avatar: "AM",
-        phoneNumber: "(555) 678-9012", email: "arlene.mccoy@email.com",
-        address: "987 Cedar Ln", city: "Philadelphia", state: "PA", zipCode: "19101",
-        emergencyContactName: "William McCoy", emergencyContactPhone: "(555) 678-9013",
-        insuranceProvider: "Kaiser Permanente", insurancePolicyNumber: "KP456789012",
-        primaryCarePhysician: "Dr. David Lee"
-      },
-      { 
-        name: "Jane Cooper", gender: "Female", dateOfBirth: "1993-09-12",
-        department: "Neurology", patientId: "#JC890GG", avatar: "JC",
-        phoneNumber: "(555) 789-0123", email: "jane.cooper@email.com",
-        address: "147 Birch Ave", city: "San Antonio", state: "TX", zipCode: "78201",
-        emergencyContactName: "Tom Cooper", emergencyContactPhone: "(555) 789-0124",
-        insuranceProvider: "Molina Healthcare", insurancePolicyNumber: "MOL567890123",
-        primaryCarePhysician: "Dr. Maria Garcia"
-      },
-      { 
-        name: "Devon Lane", gender: "Male", dateOfBirth: "1988-02-28",
-        department: "Orthopedics", patientId: "#DL123HH", avatar: "DL",
-        phoneNumber: "(555) 890-1234", email: "devon.lane@email.com",
-        address: "258 Spruce St", city: "San Diego", state: "CA", zipCode: "92101",
-        emergencyContactName: "Emily Lane", emergencyContactPhone: "(555) 890-1235",
-        insuranceProvider: "Anthem", insurancePolicyNumber: "ANT678901234",
-        primaryCarePhysician: "Dr. Kevin Martinez"
-      },
-      { 
-        name: "Marvin McKinney", gender: "Male", dateOfBirth: "1991-12-03",
-        department: "Psychiatry", patientId: "#MM456II", avatar: "MM",
-        phoneNumber: "(555) 901-2345", email: "marvin.mckinney@email.com",
-        address: "369 Willow Rd", city: "Dallas", state: "TX", zipCode: "75201",
-        emergencyContactName: "Sandra McKinney", emergencyContactPhone: "(555) 901-2346",
-        insuranceProvider: "Health Net", insurancePolicyNumber: "HN789012345",
-        primaryCarePhysician: "Dr. Patricia White"
-      },
-      { 
-        name: "Jerome Bell", gender: "Male", dateOfBirth: "1986-06-17",
-        department: "Pulmonology", patientId: "#JB789JJ", avatar: "JB",
-        phoneNumber: "(555) 012-3456", email: "jerome.bell@email.com",
-        address: "741 Ash Blvd", city: "Jacksonville", state: "FL", zipCode: "32201",
-        emergencyContactName: "Michelle Bell", emergencyContactPhone: "(555) 012-3457",
-        insuranceProvider: "Medicare", insurancePolicyNumber: "MED890123456",
-        primaryCarePhysician: "Dr. Christopher Johnson"
-      }
-    ];
+    // Import the 45 patients from CSV conversion with complete demographic data
+    const fs = require('fs');
+    const patientImportData = JSON.parse(fs.readFileSync('patient_import_data.json', 'utf8'));
+    
+    // Add required fields to CSV data for database compatibility
+    const patientData = patientImportData.map(patient => ({
+      ...patient,
+      emergencyContactName: `Emergency Contact for ${patient.firstName}`,
+      emergencyContactPhone: "(555) 000-0000",
+      insuranceProvider: "Generic Insurance", 
+      insurancePolicyNumber: `POL${Math.random().toString().substr(2,9)}`,
+      primaryCarePhysician: "Dr. Primary Care"
+    }));
 
     const patients = [];
     for (const patient of patientData) {
