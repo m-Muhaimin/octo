@@ -5,7 +5,6 @@ import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, inse
 import aiRoutes from "./ai-routes";
 import { initializeHealthcareAgent } from "./ai-agent-deepseek";
 import { AIAnalyticsEngine } from "./ai-analytics";
-import { ehrService } from "./ehr-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize AI agent with storage
@@ -405,133 +404,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // EHR Integration Routes - Connect to external Supabase database
-  app.get("/api/ehr/patients", async (req, res) => {
-    try {
-      const ehrPatients = await ehrService.getAllEHRPatients();
-      res.json(ehrPatients);
-    } catch (error) {
-      console.error("EHR patients fetch error:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch EHR patients", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.get("/api/ehr/patients/:id", async (req, res) => {
-    try {
-      const ehrPatient = await ehrService.getEHRPatient(req.params.id);
-      if (!ehrPatient) {
-        return res.status(404).json({ message: "EHR patient not found" });
-      }
-      res.json(ehrPatient);
-    } catch (error) {
-      console.error("EHR patient fetch error:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch EHR patient", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.get("/api/ehr/search", async (req, res) => {
-    try {
-      const { q: searchTerm } = req.query;
-      if (!searchTerm || typeof searchTerm !== 'string') {
-        return res.status(400).json({ message: "Search term is required" });
-      }
-      
-      const ehrPatients = await ehrService.searchEHRPatients(searchTerm);
-      res.json(ehrPatients);
-    } catch (error) {
-      console.error("EHR search error:", error);
-      res.status(500).json({ 
-        message: "Failed to search EHR patients", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.post("/api/ehr/import-patient/:id", async (req, res) => {
-    try {
-      const ehrPatient = await ehrService.getEHRPatient(req.params.id);
-      if (!ehrPatient) {
-        return res.status(404).json({ message: "EHR patient not found" });
-      }
-      
-      // Convert EHR patient to local format and save
-      const localPatientData = ehrService.convertEHRToLocalPatient(ehrPatient);
-      const newPatient = await storage.createPatient(localPatientData);
-      
-      res.status(201).json({
-        message: "Patient imported successfully",
-        patient: newPatient,
-        originalEHR: ehrPatient
-      });
-    } catch (error) {
-      console.error("Patient import error:", error);
-      res.status(500).json({ 
-        message: "Failed to import patient", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.get("/api/ehr/test-connection", async (req, res) => {
-    try {
-      const isConnected = await ehrService.testConnection();
-      res.json({ 
-        connected: isConnected,
-        message: isConnected ? "EHR database connection successful" : "EHR database connection failed",
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("EHR connection test error:", error);
-      res.status(500).json({ 
-        connected: false,
-        message: "EHR database connection test failed", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.get("/api/ehr/schema", async (req, res) => {
-    try {
-      const schema = await ehrService.getPatientTableSchema();
-      res.json(schema);
-    } catch (error) {
-      console.error("EHR schema fetch error:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch EHR schema", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  app.post("/api/ehr/replace-patients", async (req, res) => {
-    try {
-      const result = await ehrService.replaceAllPatients(storage);
-      res.json({
-        message: "Patients replaced successfully",
-        result
-      });
-    } catch (error) {
-      console.error("Patient replacement error:", error);
-      res.status(500).json({ 
-        message: "Failed to replace patients", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
   app.get("/api/ehr/systems", async (req, res) => {
     res.json({
       systems: [
-        { id: 'supabase', name: 'Supabase EHR Database', status: 'active' },
-        { id: 'athenahealth', name: 'athenahealth', status: 'planned' },
-        { id: 'drchrono', name: 'DrChrono', status: 'planned' },
-        { id: 'epic', name: 'Epic', status: 'planned' },
+        { id: 'athenahealth', name: 'athenahealth', status: 'active' },
+        { id: 'drchrono', name: 'DrChrono', status: 'active' },
+        { id: 'epic', name: 'Epic', status: 'beta' },
         { id: 'cerner', name: 'Cerner', status: 'planned' }
       ]
     });

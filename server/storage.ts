@@ -88,108 +88,16 @@ export class MemStorage implements IStorage {
       this.chartData.set(id, chartDataItem);
     });
 
-    // Initialize patients with EHR-style data structure
-    const ehrPatientData = [
-      {
-        firstName: "Brooklyn",
-        lastName: "Simmons",
-        dateOfBirth: "1995-03-18",
-        gender: "Male",
-        phone: "+1-555-0101",
-        email: "brooklyn.simmons@email.com",
-        address: "123 Main St",
-        city: "New York",
-        state: "NY",
-        zipCode: "10001",
-        race: "White",
-        ethnicity: "Non-Hispanic",
-        primaryLanguage: "English",
-        maritalStatus: "Single",
-        insuranceType: "Blue Cross Blue Shield",
-        medicalRecordNumber: "MRN001234"
-      },
-      {
-        firstName: "Sarah",
-        lastName: "Johnson",
-        dateOfBirth: "1988-07-15",
-        gender: "Female",
-        phone: "+1-555-0102",
-        email: "sarah.johnson@email.com",
-        address: "456 Oak Ave",
-        city: "Los Angeles",
-        state: "CA",
-        zipCode: "90210",
-        race: "Hispanic",
-        ethnicity: "Hispanic or Latino",
-        primaryLanguage: "Spanish",
-        maritalStatus: "Married",
-        insuranceType: "Aetna",
-        medicalRecordNumber: "MRN001235"
-      },
-      {
-        firstName: "Michael",
-        lastName: "Chen",
-        dateOfBirth: "1982-12-03",
-        gender: "Male",
-        phone: "+1-555-0103",
-        email: "michael.chen@email.com",
-        address: "789 Pine St",
-        city: "Chicago",
-        state: "IL",
-        zipCode: "60601",
-        race: "Asian",
-        ethnicity: "Non-Hispanic",
-        primaryLanguage: "English",
-        maritalStatus: "Married",
-        insuranceType: "United Healthcare",
-        medicalRecordNumber: "MRN001236"
-      },
-      {
-        firstName: "Emily",
-        lastName: "Davis",
-        dateOfBirth: "1990-04-22",
-        gender: "Female",
-        phone: "+1-555-0104",
-        email: "emily.davis@email.com",
-        address: "321 Elm St",
-        city: "Houston",
-        state: "TX",
-        zipCode: "77001",
-        race: "Black or African American",
-        ethnicity: "Non-Hispanic",
-        primaryLanguage: "English",
-        maritalStatus: "Single",
-        insuranceType: "Cigna",
-        medicalRecordNumber: "MRN001237"
-      },
-      {
-        firstName: "Robert",
-        lastName: "Wilson",
-        dateOfBirth: "1975-11-08",
-        gender: "Male",
-        phone: "+1-555-0105",
-        email: "robert.wilson@email.com",
-        address: "654 Maple Dr",
-        city: "Phoenix",
-        state: "AZ",
-        zipCode: "85001",
-        race: "White",
-        ethnicity: "Non-Hispanic",
-        primaryLanguage: "English",
-        maritalStatus: "Divorced",
-        insuranceType: "Medicare",
-        medicalRecordNumber: "MRN001238"
-      }
+    // Initialize patients
+    const patientData = [
+      { name: "Brooklyn Simmons", gender: "Male", dateOfBirth: "1995-03-18", department: "Cardiology", patientId: "#OMT23AA", avatar: "BS" },
+      { name: "Anthony Johnson", gender: "Male", dateOfBirth: "1997-03-18", department: "Cardiology", patientId: "#AT456BB", avatar: "AJ" },
+      { name: "Sarah Miller Olivia", gender: "Female", dateOfBirth: "1987-03-18", department: "Oncology", patientId: "#EA789CC", avatar: "SO" },
     ];
 
-    ehrPatientData.forEach(patient => {
+    patientData.forEach(patient => {
       const id = randomUUID();
-      const patientRecord: Patient = { 
-        ...patient, 
-        id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      const patientRecord: Patient = { ...patient, id };
       this.patients.set(id, patientRecord);
     });
 
@@ -237,23 +145,13 @@ export class MemStorage implements IStorage {
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
     const id = randomUUID();
-    const patient: Patient = { 
-      ...insertPatient, 
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const patient: Patient = { ...insertPatient, id, avatar: insertPatient.avatar || null };
     this.patients.set(id, patient);
     return patient;
   }
 
   async updatePatient(id: string, insertPatient: InsertPatient): Promise<Patient> {
-    const patient: Patient = { 
-      ...insertPatient, 
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    const patient: Patient = { ...insertPatient, id, avatar: insertPatient.avatar || null };
     this.patients.set(id, patient);
     return patient;
   }
@@ -321,7 +219,6 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = { 
       ...insertTransaction, 
       id, 
-      status: insertTransaction.status || "pending",
       description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
       createdAt: new Date()
@@ -334,7 +231,6 @@ export class MemStorage implements IStorage {
     const transaction: Transaction = { 
       ...insertTransaction, 
       id,
-      status: insertTransaction.status || "pending",
       description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
       createdAt: new Date()

@@ -5,24 +5,12 @@ import { z } from "zod";
 
 export const patients = pgTable("patients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  dateOfBirth: date("date_of_birth").notNull(),
+  name: text("name").notNull(),
   gender: text("gender").notNull(),
-  phone: text("phone"),
-  email: text("email"),
-  address: text("address"),
-  city: text("city"),
-  state: text("state"),
-  zipCode: text("zip_code"),
-  race: text("race"),
-  ethnicity: text("ethnicity"),
-  primaryLanguage: text("primary_language"),
-  maritalStatus: text("marital_status"),
-  insuranceType: text("insurance_type"),
-  medicalRecordNumber: text("medical_record_number").unique(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  dateOfBirth: date("date_of_birth").notNull(),
+  department: text("department").notNull(),
+  patientId: text("patient_id").notNull().unique(),
+  avatar: text("avatar"),
 });
 
 export const appointments = pgTable("appointments", {

@@ -31,7 +31,6 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: CreditCard, label: "Agent Overview", path: "/agent-overview" },
     { icon: Users, label: "Patients", path: "/patients" },
-    { icon: User, label: "EHR Patients", path: "/ehr-patients" },
     { icon: MessageSquare, label: "Messages", path: "/messages" },
     { icon: Calendar, label: "Appointments", path: "/appointments" },
     { icon: Bot, label: "AI Agent", path: "/ai-agent" },
