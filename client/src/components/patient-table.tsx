@@ -26,16 +26,12 @@ export default function PatientTable({ patients }: PatientTableProps) {
     status: 'all',
   });
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const getInitials = (firstName: string, lastName: string) => {
+    if (!firstName || !lastName) return '??';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase();
   };
 
-  const getAvatarColor = (name: string) => {
+  const getAvatarColor = (firstName: string, lastName: string) => {
     const colors = [
       'bg-red-100 text-red-600',
       'bg-blue-100 text-blue-600',
@@ -44,7 +40,8 @@ export default function PatientTable({ patients }: PatientTableProps) {
       'bg-yellow-100 text-yellow-600',
       'bg-indigo-100 text-indigo-600',
     ];
-    const index = name.length % colors.length;
+    const fullName = `${firstName || ''}${lastName || ''}`;
+    const index = fullName.length % colors.length;
     return colors[index];
   };
 
@@ -63,12 +60,14 @@ export default function PatientTable({ patients }: PatientTableProps) {
 
   const filteredPatients = patients.filter(patient => {
     // Search filter
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.patientId.toLowerCase().includes(searchTerm.toLowerCase());
+    const fullName = `${patient.firstName} ${patient.lastName}`;
+    const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.medicalRecordNumber && patient.medicalRecordNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (patient.phone && patient.phone.includes(searchTerm)) ||
+      (patient.email && patient.email.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Department filter
-    const matchesDepartment = activeFilters.departments.length === 0 ||
-      activeFilters.departments.includes(patient.department);
+    // For now, we'll skip department filtering since it's not in the new schema
+    const matchesDepartment = true;
     
     // Gender filter
     const matchesGender = activeFilters.genders.length === 0 ||
@@ -177,10 +176,10 @@ export default function PatientTable({ patients }: PatientTableProps) {
                 Age
               </th>
               <th className="text-left py-2 px-5 text-xs font-medium text-text-secondary uppercase tracking-wider">
-                Department
+                Insurance
               </th>
               <th className="text-left py-2 px-5 text-xs font-medium text-text-secondary uppercase tracking-wider">
-                Patient ID
+                Medical Record #
               </th>
               <th className="text-center py-2 px-5 text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Actions
@@ -210,13 +209,13 @@ export default function PatientTable({ patients }: PatientTableProps) {
                   </td>
                   <td className="py-3 px-5">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(patient.firstName, patient.lastName)}`}>
                         <span className="font-semibold text-xs">
-                          {getInitials(patient.name)}
+                          {getInitials(patient.firstName, patient.lastName)}
                         </span>
                       </div>
                       <span className="font-medium text-sm text-text-primary" data-testid={`text-patient-name-${index}`}>
-                        {patient.name}
+                        {patient.firstName} {patient.lastName}
                       </span>
                     </div>
                   </td>
@@ -227,13 +226,13 @@ export default function PatientTable({ patients }: PatientTableProps) {
                     {patient.dateOfBirth}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-age-${index}`}>
-                    {calculateAge(patient.dateOfBirth)} years old
+                    {calculateAge(patient.dateOfBirth)}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-department-${index}`}>
-                    {patient.department}
+                    {patient.insuranceType || 'Not specified'}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-id-${index}`}>
-                    {patient.patientId}
+                    {patient.medicalRecordNumber || 'N/A'}
                   </td>
                   <td className="py-3 px-5 text-center">
                     <Button
@@ -279,18 +278,18 @@ export default function PatientTable({ patients }: PatientTableProps) {
                   data-testid={`checkbox-patient-mobile-${index}`}
                   className="mt-1"
                 />
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)} flex-shrink-0`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(patient.firstName, patient.lastName)} flex-shrink-0`}>
                   <span className="font-semibold text-sm">
-                    {getInitials(patient.name)}
+                    {getInitials(patient.firstName, patient.lastName)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="font-medium text-text-primary truncate" data-testid={`text-patient-name-mobile-${index}`}>
-                      {patient.name}
+                      {patient.firstName} {patient.lastName}
                     </h4>
                     <span className="text-xs text-text-secondary bg-gray-100 px-2 py-1 rounded ml-2" data-testid={`text-patient-id-mobile-${index}`}>
-                      {patient.patientId}
+                      {patient.medicalRecordNumber || 'N/A'}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
@@ -304,7 +303,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
                       <span className="font-medium">DOB:</span> {patient.dateOfBirth}
                     </div>
                     <div>
-                      <span className="font-medium">Dept:</span> {patient.department}
+                      <span className="font-medium">Insurance:</span> {patient.insuranceType || 'Not specified'}
                     </div>
                   </div>
                   <div className="mt-2">

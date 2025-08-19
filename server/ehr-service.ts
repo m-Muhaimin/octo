@@ -163,12 +163,22 @@ export class EHRService {
    */
   convertEHRToLocalPatient(ehrPatient: EHRPatientData): InsertPatient {
     return {
-      name: `${ehrPatient.first_name} ${ehrPatient.last_name}`,
-      gender: ehrPatient.gender || "Unknown",
+      firstName: ehrPatient.first_name,
+      lastName: ehrPatient.last_name,
       dateOfBirth: ehrPatient.date_of_birth,
-      department: this.inferDepartmentFromData(ehrPatient),
-      patientId: ehrPatient.medical_record_number || `#EHR${ehrPatient.id.slice(-6).toUpperCase()}`,
-      avatar: this.generateAvatarInitials(ehrPatient.first_name, ehrPatient.last_name),
+      gender: ehrPatient.gender || "Unknown",
+      phone: ehrPatient.phone || null,
+      email: ehrPatient.email || null,
+      address: ehrPatient.address || null,
+      city: ehrPatient.city || null,
+      state: ehrPatient.state || null,
+      zipCode: ehrPatient.zip_code || null,
+      race: ehrPatient.race || null,
+      ethnicity: ehrPatient.ethnicity || null,
+      primaryLanguage: ehrPatient.primary_language || null,
+      maritalStatus: ehrPatient.marital_status || null,
+      insuranceType: ehrPatient.insurance_type || null,
+      medicalRecordNumber: ehrPatient.medical_record_number || null,
     };
   }
 
@@ -209,6 +219,63 @@ export class EHRService {
     const firstInitial = firstName ? firstName.charAt(0).toUpperCase() : "";
     const lastInitial = lastName ? lastName.charAt(0).toUpperCase() : "";
     return `${firstInitial}${lastInitial}`;
+  }
+
+  /**
+   * Get the EHR database schema for patients table
+   */
+  async getPatientTableSchema(): Promise<any> {
+    try {
+      const result = await ehrDb.execute(sql`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_name = 'patients' 
+        ORDER BY ordinal_position
+      `);
+      return result.rows;
+    } catch (error) {
+      console.error("Failed to get EHR patient table schema:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Replace all local patients with EHR patients
+   */
+  async replaceAllPatients(storage: any): Promise<{ imported: number; cleared: number }> {
+    try {
+      console.log("Starting patient replacement from EHR database...");
+      
+      // Get all EHR patients
+      const ehrPatients = await this.getAllEHRPatients();
+      console.log(`Found ${ehrPatients.length} patients in EHR database`);
+      
+      // Clear existing patients
+      const existingPatients = await storage.getAllPatients();
+      console.log(`Clearing ${existingPatients.length} existing patients`);
+      
+      for (const patient of existingPatients) {
+        await storage.deletePatient(patient.id);
+      }
+      
+      // Import all EHR patients
+      let importedCount = 0;
+      for (const ehrPatient of ehrPatients) {
+        try {
+          const localPatientData = this.convertEHRToLocalPatient(ehrPatient);
+          await storage.createPatient(localPatientData);
+          importedCount++;
+        } catch (error) {
+          console.error(`Failed to import patient ${ehrPatient.id}:`, error);
+        }
+      }
+      
+      console.log(`Patient replacement complete: ${importedCount} imported, ${existingPatients.length} cleared`);
+      return { imported: importedCount, cleared: existingPatients.length };
+    } catch (error) {
+      console.error("Patient replacement failed:", error);
+      throw error;
+    }
   }
 
   /**

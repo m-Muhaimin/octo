@@ -496,6 +496,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/ehr/schema", async (req, res) => {
+    try {
+      const schema = await ehrService.getPatientTableSchema();
+      res.json(schema);
+    } catch (error) {
+      console.error("EHR schema fetch error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch EHR schema", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.post("/api/ehr/replace-patients", async (req, res) => {
+    try {
+      const result = await ehrService.replaceAllPatients(storage);
+      res.json({
+        message: "Patients replaced successfully",
+        result
+      });
+    } catch (error) {
+      console.error("Patient replacement error:", error);
+      res.status(500).json({ 
+        message: "Failed to replace patients", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   app.get("/api/ehr/systems", async (req, res) => {
     res.json({
       systems: [

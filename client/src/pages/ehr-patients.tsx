@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Search, Download, Database, CheckCircle, AlertCircle } from "lucide-react";
+import EHRPatientReplacement from "@/components/ehr-patient-replacement";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -130,6 +131,9 @@ export default function EHRPatients() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Patient Replacement */}
+      <EHRPatientReplacement />
 
       {/* Search */}
       <Card>
