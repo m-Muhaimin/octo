@@ -338,32 +338,29 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
     // Check if patient already exists
     const existingPatients = await this.storage.getAllPatients();
     const existingPatient = existingPatients.find((p: Patient) => 
-      `${p.firstName} ${p.lastName}`.toLowerCase() === patientName.toLowerCase()
+      p.name.toLowerCase() === patientName.toLowerCase()
     );
     
     if (existingPatient) {
-      this.addAuditStep(sessionId, 'patient_lookup', 'completed', { found: true, patientId: existingPatient.patientId });
-      return { patientId: existingPatient.patientId.toString(), isNewPatient: false };
+      this.addAuditStep(sessionId, 'patient_lookup', 'completed', { found: true, patientId: existingPatient.id });
+      return { patientId: existingPatient.id, isNewPatient: false };
     }
     
     // Create new patient
     this.addAuditStep(sessionId, 'patient_creation', 'in_progress');
-    const [firstName, ...lastNameParts] = patientName.split(' ');
-    const lastName = lastNameParts.join(' ') || 'Unknown';
-    
     const newPatientData: InsertPatient = {
-      firstName,
-      lastName,
-      gender: 'U', // Unknown - would collect during registration
+      name: patientName,
+      gender: 'Unknown', // Would collect during registration
       dateOfBirth: '1990-01-01', // Default - would collect during registration
-      phone: null,
-      email: null
+      department: context.specialty || 'General Medicine',
+      patientId: `#${patientName.toUpperCase().replace(/\s+/g, '').slice(0, 3)}${Date.now().toString().slice(-3)}`,
+      avatar: patientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     };
     
     const newPatient = await this.storage.createPatient(newPatientData);
-    this.addAuditStep(sessionId, 'patient_creation', 'completed', { patientId: newPatient.patientId });
+    this.addAuditStep(sessionId, 'patient_creation', 'completed', { patientId: newPatient.id });
     
-    return { patientId: newPatient.patientId.toString(), isNewPatient: true };
+    return { patientId: newPatient.id, isNewPatient: true };
   }
 
   // Complete end-to-end scheduling workflow
@@ -442,7 +439,8 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
       
       // Create actual appointment record
       const appointmentData: InsertAppointment = {
-        patientId: parseInt(patientId),
+        patientId: patientId,
+        patientName: context.patientName || 'Unknown Patient',
         appointmentType: context.serviceType,
         appointmentDate: selectedSlot.date,
         appointmentTime: selectedSlot.startTime,
@@ -450,7 +448,7 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
       };
       
       const appointment = await this.storage.createAppointment(appointmentData);
-      this.addAuditStep(sessionId, 'appointment_booking', 'completed', { appointmentId: appointment.appointmentId });
+      this.addAuditStep(sessionId, 'appointment_booking', 'completed', { appointmentId: appointment.id });
 
       // Step 5: Send Confirmation & Pre-visit Instructions
       this.addAuditStep(sessionId, 'send_confirmation', 'in_progress');
@@ -459,7 +457,7 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
 
       return {
         success: true,
-        appointmentId: appointment.appointmentId.toString(),
+        appointmentId: appointment.id,
         patientId: patientId,
         isNewPatient: isNewPatient,
         steps: this.auditTrail.get(sessionId) || [],

@@ -62,18 +62,17 @@ export default function PatientTable({ patients }: PatientTableProps) {
   };
 
   const filteredPatients = patients.filter(patient => {
-    // Search filter - now using firstName and lastName instead of name
-    const patientName = `${patient.firstName || ''} ${patient.lastName || ''}`.toLowerCase();
-    const patientId = (patient.patientId || '').toString().toLowerCase();
-    const matchesSearch = patientName.includes(searchTerm.toLowerCase()) ||
-      patientId.includes(searchTerm.toLowerCase());
+    // Search filter
+    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.patientId.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Department filter - removed since department no longer exists in schema
-    const matchesDepartment = true; // Always match since department was removed
+    // Department filter
+    const matchesDepartment = activeFilters.departments.length === 0 ||
+      activeFilters.departments.includes(patient.department);
     
-    // Gender filter - with null check
+    // Gender filter
     const matchesGender = activeFilters.genders.length === 0 ||
-      activeFilters.genders.includes(patient.gender || '');
+      activeFilters.genders.includes(patient.gender);
     
     // Status filter (using statusFilter for backward compatibility)
     const matchesStatus = statusFilter === 'all' || activeFilters.status === 'all';
@@ -88,7 +87,7 @@ export default function PatientTable({ patients }: PatientTableProps) {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPatients(filteredPatients.map(p => p.patientId.toString()));
+      setSelectedPatients(filteredPatients.map(p => p.id));
     } else {
       setSelectedPatients([]);
     }
@@ -198,40 +197,40 @@ export default function PatientTable({ patients }: PatientTableProps) {
             ) : (
               filteredPatients.map((patient, index) => (
                 <tr 
-                  key={patient.patientId} 
+                  key={patient.id} 
                   className="hover:bg-gray-50 transition-colors"
                   data-testid={`row-patient-${index}`}
                 >
                   <td className="py-3 px-5">
                     <Checkbox
-                      checked={selectedPatients.includes(patient.patientId.toString())}
-                      onCheckedChange={(checked) => handleSelectPatient(patient.patientId.toString(), checked as boolean)}
+                      checked={selectedPatients.includes(patient.id)}
+                      onCheckedChange={(checked) => handleSelectPatient(patient.id, checked as boolean)}
                       data-testid={`checkbox-patient-${index}`}
                     />
                   </td>
                   <td className="py-3 px-5">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(`${patient.firstName} ${patient.lastName}`)}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)}`}>
                         <span className="font-semibold text-xs">
-                          {getInitials(`${patient.firstName} ${patient.lastName}`)}
+                          {getInitials(patient.name)}
                         </span>
                       </div>
                       <span className="font-medium text-sm text-text-primary" data-testid={`text-patient-name-${index}`}>
-                        {patient.firstName} {patient.lastName}
+                        {patient.name}
                       </span>
                     </div>
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-gender-${index}`}>
-                    {patient.gender || 'N/A'}
+                    {patient.gender}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-dob-${index}`}>
-                    {patient.dateOfBirth || 'N/A'}
+                    {patient.dateOfBirth}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-age-${index}`}>
-                    {patient.dateOfBirth ? calculateAge(patient.dateOfBirth) : 'N/A'}
+                    {calculateAge(patient.dateOfBirth)} years old
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-department-${index}`}>
-                    General Medicine
+                    {patient.department}
                   </td>
                   <td className="py-3 px-5 text-sm text-text-secondary" data-testid={`text-patient-id-${index}`}>
                     {patient.patientId}
@@ -269,26 +268,26 @@ export default function PatientTable({ patients }: PatientTableProps) {
         ) : (
           filteredPatients.map((patient, index) => (
             <div 
-              key={patient.patientId} 
+              key={patient.id} 
               className="p-4 border border-gray-200 rounded-[17px] hover:bg-gray-50 transition-colors"
               data-testid={`card-patient-${index}`}
             >
               <div className="flex items-start space-x-3">
                 <Checkbox
-                  checked={selectedPatients.includes(patient.patientId.toString())}
-                  onCheckedChange={(checked) => handleSelectPatient(patient.patientId.toString(), checked as boolean)}
+                  checked={selectedPatients.includes(patient.id)}
+                  onCheckedChange={(checked) => handleSelectPatient(patient.id, checked as boolean)}
                   data-testid={`checkbox-patient-mobile-${index}`}
                   className="mt-1"
                 />
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(`${patient.firstName} ${patient.lastName}`)} flex-shrink-0`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(patient.name)} flex-shrink-0`}>
                   <span className="font-semibold text-sm">
-                    {getInitials(`${patient.firstName} ${patient.lastName}`)}
+                    {getInitials(patient.name)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="font-medium text-text-primary truncate" data-testid={`text-patient-name-mobile-${index}`}>
-                      {patient.firstName} {patient.lastName}
+                      {patient.name}
                     </h4>
                     <span className="text-xs text-text-secondary bg-gray-100 px-2 py-1 rounded ml-2" data-testid={`text-patient-id-mobile-${index}`}>
                       {patient.patientId}
@@ -296,16 +295,16 @@ export default function PatientTable({ patients }: PatientTableProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-text-secondary">
                     <div>
-                      <span className="font-medium">Gender:</span> {patient.gender || 'N/A'}
+                      <span className="font-medium">Gender:</span> {patient.gender}
                     </div>
                     <div>
-                      <span className="font-medium">Age:</span> {patient.dateOfBirth ? calculateAge(patient.dateOfBirth) : 'N/A'}
+                      <span className="font-medium">Age:</span> {calculateAge(patient.dateOfBirth)}
                     </div>
                     <div>
-                      <span className="font-medium">DOB:</span> {patient.dateOfBirth || 'N/A'}
+                      <span className="font-medium">DOB:</span> {patient.dateOfBirth}
                     </div>
                     <div>
-                      <span className="font-medium">Dept:</span> General Medicine
+                      <span className="font-medium">Dept:</span> {patient.department}
                     </div>
                   </div>
                   <div className="mt-2">

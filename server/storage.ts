@@ -1,4 +1,5 @@
 import { type User, type InsertUser, type Patient, type InsertPatient, type Appointment, type InsertAppointment, type Metrics, type InsertMetrics, type ChartData, type InsertChartData, type Transaction, type InsertTransaction, users, patients, appointments, metrics, chartData, transactions } from "@shared/schema";
+import { randomUUID } from "crypto";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { eq } from "drizzle-orm";
@@ -10,21 +11,21 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool);
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
   getAllPatients(): Promise<Patient[]>;
-  getPatient(id: number): Promise<Patient | undefined>;
+  getPatient(id: string): Promise<Patient | undefined>;
   createPatient(patient: InsertPatient): Promise<Patient>;
-  updatePatient(id: number, patient: InsertPatient): Promise<Patient>;
-  deletePatient(id: number): Promise<void>;
+  updatePatient(id: string, patient: InsertPatient): Promise<Patient>;
+  deletePatient(id: string): Promise<void>;
   
   getAllAppointments(): Promise<Appointment[]>;
-  getAppointment(id: number): Promise<Appointment | undefined>;
+  getAppointment(id: string): Promise<Appointment | undefined>;
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
-  updateAppointment(id: number, appointment: InsertAppointment): Promise<Appointment>;
-  deleteAppointment(id: number): Promise<void>;
+  updateAppointment(id: string, appointment: InsertAppointment): Promise<Appointment>;
+  deleteAppointment(id: string): Promise<void>;
   
   getMetrics(): Promise<Metrics | undefined>;
   updateMetrics(metrics: InsertMetrics): Promise<Metrics>;
@@ -33,20 +34,19 @@ export interface IStorage {
   createChartData(data: InsertChartData): Promise<ChartData>;
   
   getAllTransactions(): Promise<Transaction[]>;
-  getTransaction(id: number): Promise<Transaction | undefined>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  updateTransaction(id: number, transaction: InsertTransaction): Promise<Transaction>;
-  deleteTransaction(id: number): Promise<void>;
+  updateTransaction(id: string, transaction: InsertTransaction): Promise<Transaction>;
+  deleteTransaction(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private patients: Map<number, Patient>;
-  private appointments: Map<number, Appointment>;
+  private users: Map<string, User>;
+  private patients: Map<string, Patient>;
+  private appointments: Map<string, Appointment>;
   private metrics: Metrics | undefined;
-  private chartData: Map<number, ChartData>;
-  private transactions: Map<number, Transaction>;
-  private nextId: number = 1;
+  private chartData: Map<string, ChartData>;
+  private transactions: Map<string, Transaction>;
 
   constructor() {
     this.users = new Map();
@@ -60,7 +60,7 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Initialize metrics
     this.metrics = {
-      metricId: this.nextId++,
+      id: randomUUID(),
       totalPatients: 579,
       totalAppointments: 54,
       totalIncome: "8399.24",
@@ -74,66 +74,51 @@ export class MemStorage implements IStorage {
 
     // Initialize chart data
     const chartDataItems = [
-      { month: "Jan", hospitalizedPatients: 100, outpatients: 80, chronicPatients: 25, preventiveVisits: 120, emergencyVisits: 15 },
-      { month: "Feb", hospitalizedPatients: 120, outpatients: 90, chronicPatients: 30, preventiveVisits: 130, emergencyVisits: 18 },
-      { month: "Mar", hospitalizedPatients: 115, outpatients: 70, chronicPatients: 28, preventiveVisits: 110, emergencyVisits: 12 },
-      { month: "Apr", hospitalizedPatients: 140, outpatients: 130, chronicPatients: 35, preventiveVisits: 140, emergencyVisits: 22 },
-      { month: "May", hospitalizedPatients: 180, outpatients: 150, chronicPatients: 40, preventiveVisits: 160, emergencyVisits: 28 },
-      { month: "Jun", hospitalizedPatients: 130, outpatients: 98, chronicPatients: 32, preventiveVisits: 125, emergencyVisits: 20 },
+      { month: "Jan", hospitalizedPatients: 100, outpatients: 80 },
+      { month: "Feb", hospitalizedPatients: 120, outpatients: 90 },
+      { month: "Mar", hospitalizedPatients: 115, outpatients: 70 },
+      { month: "Apr", hospitalizedPatients: 140, outpatients: 130 },
+      { month: "May", hospitalizedPatients: 180, outpatients: 150 },
+      { month: "Jun", hospitalizedPatients: 130, outpatients: 98 },
     ];
 
     chartDataItems.forEach(item => {
-      const id = this.nextId++;
-      const chartDataItem: ChartData = { ...item, chartId: id, createdAt: new Date() };
+      const id = randomUUID();
+      const chartDataItem: ChartData = { ...item, id };
       this.chartData.set(id, chartDataItem);
     });
 
     // Initialize patients
     const patientData = [
-      { firstName: "Brooklyn", lastName: "Simmons", gender: "M" as const, dateOfBirth: "1995-03-18", phone: "555-1234", email: "brooklyn@example.com" },
-      { firstName: "Anthony", lastName: "Johnson", gender: "M" as const, dateOfBirth: "1997-03-18", phone: "555-5678", email: "anthony@example.com" },
-      { firstName: "Sarah", lastName: "Miller", gender: "F" as const, dateOfBirth: "1987-03-18", phone: "555-9012", email: "sarah@example.com" },
+      { name: "Brooklyn Simmons", gender: "Male", dateOfBirth: "1995-03-18", department: "Cardiology", patientId: "#OMT23AA", avatar: "BS" },
+      { name: "Anthony Johnson", gender: "Male", dateOfBirth: "1997-03-18", department: "Cardiology", patientId: "#AT456BB", avatar: "AJ" },
+      { name: "Sarah Miller Olivia", gender: "Female", dateOfBirth: "1987-03-18", department: "Oncology", patientId: "#EA789CC", avatar: "SO" },
     ];
 
     patientData.forEach(patient => {
-      const id = this.nextId++;
-      const patientRecord: Patient = { 
-        ...patient, 
-        patientId: id,
-        race: null,
-        ethnicity: null,
-        address: null,
-        city: null,
-        state: null,
-        zipCode: null,
-        primaryLanguage: null,
-        maritalStatus: null,
-        insuranceType: null,
-        lastVisitDate: null
-      };
+      const id = randomUUID();
+      const patientRecord: Patient = { ...patient, id };
       this.patients.set(id, patientRecord);
     });
 
     // Initialize appointments
     const appointmentData = [
-      { patientId: 1, appointmentType: "Allergy Testing", appointmentDate: "2024-08-16", appointmentTime: "10:30", status: "scheduled" },
-      { patientId: 2, appointmentType: "Routine Lab Tests", appointmentDate: "2024-08-16", appointmentTime: "10:00", status: "scheduled" },
-      { patientId: 3, appointmentType: "Chronic Disease Management", appointmentDate: "2024-08-15", appointmentTime: "15:00", status: "scheduled" },
+      { patientName: "Brooklyn Simmons", appointmentType: "Allergy Testing", appointmentDate: "2024-08-16", appointmentTime: "10:30", status: "scheduled" },
+      { patientName: "Courtney Henry", appointmentType: "Routine Lab Tests", appointmentDate: "2024-08-16", appointmentTime: "10:00", status: "scheduled" },
+      { patientName: "Sarah Miller Olivia", appointmentType: "Chronic Disease Management", appointmentDate: "2024-08-15", appointmentTime: "15:00", status: "scheduled" },
+      { patientName: "Esther Howard", appointmentType: "Allergy Testing", appointmentDate: "2024-08-15", appointmentTime: "14:00", status: "scheduled" },
+      { patientName: "Arlene McCoy", appointmentType: "Routine Lab Tests", appointmentDate: "2024-08-15", appointmentTime: "11:30", status: "scheduled" },
+      { patientName: "Jane Cooper", appointmentType: "Acute Illness", appointmentDate: "2024-08-15", appointmentTime: "10:00", status: "scheduled" },
     ];
 
     appointmentData.forEach(appointment => {
-      const id = this.nextId++;
-      const appointmentRecord: Appointment = { 
-        ...appointment, 
-        appointmentId: id,
-        encounterId: null,
-        createdAt: new Date()
-      };
+      const id = randomUUID();
+      const appointmentRecord: Appointment = { ...appointment, id, patientId: randomUUID() };
       this.appointments.set(id, appointmentRecord);
     });
   }
 
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
 
@@ -144,8 +129,8 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.nextId++;
-    const user: User = { ...insertUser, userId: id, createdAt: new Date() };
+    const id = randomUUID();
+    const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
   }
@@ -154,54 +139,24 @@ export class MemStorage implements IStorage {
     return Array.from(this.patients.values());
   }
 
-  async getPatient(id: number): Promise<Patient | undefined> {
+  async getPatient(id: string): Promise<Patient | undefined> {
     return this.patients.get(id);
   }
 
   async createPatient(insertPatient: InsertPatient): Promise<Patient> {
-    const id = this.nextId++;
-    const patient: Patient = { 
-      ...insertPatient, 
-      patientId: id,
-      race: insertPatient.race || null,
-      ethnicity: insertPatient.ethnicity || null,
-      address: insertPatient.address || null,
-      city: insertPatient.city || null,
-      state: insertPatient.state || null,
-      zipCode: insertPatient.zipCode || null,
-      phone: insertPatient.phone || null,
-      email: insertPatient.email || null,
-      primaryLanguage: insertPatient.primaryLanguage || null,
-      maritalStatus: insertPatient.maritalStatus || null,
-      insuranceType: insertPatient.insuranceType || null,
-      lastVisitDate: insertPatient.lastVisitDate || null
-    };
+    const id = randomUUID();
+    const patient: Patient = { ...insertPatient, id, avatar: insertPatient.avatar || null };
     this.patients.set(id, patient);
     return patient;
   }
 
-  async updatePatient(id: number, insertPatient: InsertPatient): Promise<Patient> {
-    const patient: Patient = { 
-      ...insertPatient, 
-      patientId: id,
-      race: insertPatient.race || null,
-      ethnicity: insertPatient.ethnicity || null,
-      address: insertPatient.address || null,
-      city: insertPatient.city || null,
-      state: insertPatient.state || null,
-      zipCode: insertPatient.zipCode || null,
-      phone: insertPatient.phone || null,
-      email: insertPatient.email || null,
-      primaryLanguage: insertPatient.primaryLanguage || null,
-      maritalStatus: insertPatient.maritalStatus || null,
-      insuranceType: insertPatient.insuranceType || null,
-      lastVisitDate: insertPatient.lastVisitDate || null
-    };
+  async updatePatient(id: string, insertPatient: InsertPatient): Promise<Patient> {
+    const patient: Patient = { ...insertPatient, id, avatar: insertPatient.avatar || null };
     this.patients.set(id, patient);
     return patient;
   }
 
-  async deletePatient(id: number): Promise<void> {
+  async deletePatient(id: string): Promise<void> {
     this.patients.delete(id);
   }
 
@@ -209,36 +164,24 @@ export class MemStorage implements IStorage {
     return Array.from(this.appointments.values());
   }
 
-  async getAppointment(id: number): Promise<Appointment | undefined> {
+  async getAppointment(id: string): Promise<Appointment | undefined> {
     return this.appointments.get(id);
   }
 
   async createAppointment(insertAppointment: InsertAppointment): Promise<Appointment> {
-    const id = this.nextId++;
-    const appointment: Appointment = { 
-      ...insertAppointment, 
-      appointmentId: id, 
-      status: insertAppointment.status || "scheduled",
-      encounterId: insertAppointment.encounterId || null,
-      createdAt: new Date()
-    };
+    const id = randomUUID();
+    const appointment: Appointment = { ...insertAppointment, id, status: insertAppointment.status || null };
     this.appointments.set(id, appointment);
     return appointment;
   }
 
-  async updateAppointment(id: number, insertAppointment: InsertAppointment): Promise<Appointment> {
-    const appointment: Appointment = { 
-      ...insertAppointment, 
-      appointmentId: id, 
-      status: insertAppointment.status || "scheduled",
-      encounterId: insertAppointment.encounterId || null,
-      createdAt: new Date()
-    };
+  async updateAppointment(id: string, insertAppointment: InsertAppointment): Promise<Appointment> {
+    const appointment: Appointment = { ...insertAppointment, id, status: insertAppointment.status || null };
     this.appointments.set(id, appointment);
     return appointment;
   }
 
-  async deleteAppointment(id: number): Promise<void> {
+  async deleteAppointment(id: string): Promise<void> {
     this.appointments.delete(id);
   }
 
@@ -247,8 +190,8 @@ export class MemStorage implements IStorage {
   }
 
   async updateMetrics(insertMetrics: InsertMetrics): Promise<Metrics> {
-    const id = this.metrics?.metricId || this.nextId++;
-    this.metrics = { ...insertMetrics, metricId: id, updatedAt: new Date() };
+    const id = this.metrics?.id || randomUUID();
+    this.metrics = { ...insertMetrics, id, updatedAt: new Date() };
     return this.metrics;
   }
 
@@ -257,15 +200,8 @@ export class MemStorage implements IStorage {
   }
 
   async createChartData(insertData: InsertChartData): Promise<ChartData> {
-    const id = this.nextId++;
-    const data: ChartData = { 
-      ...insertData, 
-      chartId: id,
-      chronicPatients: insertData.chronicPatients || null,
-      preventiveVisits: insertData.preventiveVisits || null,
-      emergencyVisits: insertData.emergencyVisits || null,
-      createdAt: new Date()
-    };
+    const id = randomUUID();
+    const data: ChartData = { ...insertData, id };
     this.chartData.set(id, data);
     return data;
   }
@@ -274,45 +210,43 @@ export class MemStorage implements IStorage {
     return Array.from(this.transactions.values());
   }
 
-  async getTransaction(id: number): Promise<Transaction | undefined> {
+  async getTransaction(id: string): Promise<Transaction | undefined> {
     return this.transactions.get(id);
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const id = this.nextId++;
+    const id = randomUUID();
     const transaction: Transaction = { 
       ...insertTransaction, 
-      transactionId: id,
+      id, 
       description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
-      encounterId: insertTransaction.encounterId || null,
       createdAt: new Date()
     };
     this.transactions.set(id, transaction);
     return transaction;
   }
 
-  async updateTransaction(id: number, insertTransaction: InsertTransaction): Promise<Transaction> {
+  async updateTransaction(id: string, insertTransaction: InsertTransaction): Promise<Transaction> {
     const transaction: Transaction = { 
       ...insertTransaction, 
-      transactionId: id,
+      id,
       description: insertTransaction.description || null,
       transactionDate: insertTransaction.transactionDate || new Date(),
-      encounterId: insertTransaction.encounterId || null,
       createdAt: new Date()
     };
     this.transactions.set(id, transaction);
     return transaction;
   }
 
-  async deleteTransaction(id: number): Promise<void> {
+  async deleteTransaction(id: string): Promise<void> {
     this.transactions.delete(id);
   }
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.userId, id));
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
   }
 
@@ -330,8 +264,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(patients);
   }
 
-  async getPatient(id: number): Promise<Patient | undefined> {
-    const result = await db.select().from(patients).where(eq(patients.patientId, id));
+  async getPatient(id: string): Promise<Patient | undefined> {
+    const result = await db.select().from(patients).where(eq(patients.id, id));
     return result[0];
   }
 
@@ -340,21 +274,21 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updatePatient(id: number, insertPatient: InsertPatient): Promise<Patient> {
-    const result = await db.update(patients).set(insertPatient).where(eq(patients.patientId, id)).returning();
+  async updatePatient(id: string, insertPatient: InsertPatient): Promise<Patient> {
+    const result = await db.update(patients).set(insertPatient).where(eq(patients.id, id)).returning();
     return result[0];
   }
 
-  async deletePatient(id: number): Promise<void> {
-    await db.delete(patients).where(eq(patients.patientId, id));
+  async deletePatient(id: string): Promise<void> {
+    await db.delete(patients).where(eq(patients.id, id));
   }
 
   async getAllAppointments(): Promise<Appointment[]> {
     return await db.select().from(appointments);
   }
 
-  async getAppointment(id: number): Promise<Appointment | undefined> {
-    const result = await db.select().from(appointments).where(eq(appointments.appointmentId, id));
+  async getAppointment(id: string): Promise<Appointment | undefined> {
+    const result = await db.select().from(appointments).where(eq(appointments.id, id));
     return result[0];
   }
 
@@ -363,13 +297,13 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateAppointment(id: number, insertAppointment: InsertAppointment): Promise<Appointment> {
-    const result = await db.update(appointments).set(insertAppointment).where(eq(appointments.appointmentId, id)).returning();
+  async updateAppointment(id: string, insertAppointment: InsertAppointment): Promise<Appointment> {
+    const result = await db.update(appointments).set(insertAppointment).where(eq(appointments.id, id)).returning();
     return result[0];
   }
 
-  async deleteAppointment(id: number): Promise<void> {
-    await db.delete(appointments).where(eq(appointments.appointmentId, id));
+  async deleteAppointment(id: string): Promise<void> {
+    await db.delete(appointments).where(eq(appointments.id, id));
   }
 
   async getMetrics(): Promise<Metrics | undefined> {
@@ -380,7 +314,7 @@ export class DatabaseStorage implements IStorage {
   async updateMetrics(insertMetrics: InsertMetrics): Promise<Metrics> {
     const existing = await this.getMetrics();
     if (existing) {
-      const result = await db.update(metrics).set(insertMetrics).where(eq(metrics.metricId, existing.metricId)).returning();
+      const result = await db.update(metrics).set(insertMetrics).where(eq(metrics.id, existing.id)).returning();
       return result[0];
     } else {
       const result = await db.insert(metrics).values(insertMetrics).returning();
@@ -401,8 +335,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(transactions);
   }
 
-  async getTransaction(id: number): Promise<Transaction | undefined> {
-    const result = await db.select().from(transactions).where(eq(transactions.transactionId, id));
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const result = await db.select().from(transactions).where(eq(transactions.id, id));
     return result[0];
   }
 
@@ -411,75 +345,50 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateTransaction(id: number, insertTransaction: InsertTransaction): Promise<Transaction> {
-    const result = await db.update(transactions).set(insertTransaction).where(eq(transactions.transactionId, id)).returning();
+  async updateTransaction(id: string, insertTransaction: InsertTransaction): Promise<Transaction> {
+    const result = await db.update(transactions).set(insertTransaction).where(eq(transactions.id, id)).returning();
     return result[0];
   }
 
-  async deleteTransaction(id: number): Promise<void> {
-    await db.delete(transactions).where(eq(transactions.transactionId, id));
+  async deleteTransaction(id: string): Promise<void> {
+    await db.delete(transactions).where(eq(transactions.id, id));
   }
 }
 
 // Initialize storage - use database storage for persistence
 export const storage: IStorage = new DatabaseStorage();
 
-// Seeding function
-export async function seedDatabase(storage: IStorage) {
+// Alternative: Async function to get storage with database fallback
+export async function getStorage(): Promise<IStorage> {
   try {
+    if (process.env.DATABASE_URL) {
+      const dbStorage = new DatabaseStorage();
+      // Test the connection
+      await dbStorage.getAllPatients();
+      console.log("Using database storage");
+      return dbStorage;
+    } else {
+      throw new Error("No database URL configured");
+    }
+  } catch (error) {
+    console.log("Database not available, using in-memory storage");
+    return new MemStorage();
+  }
+}
+
+// Seed function to populate database with dummy data
+export async function seedDatabase() {
+  try {
+    // Check if data already exists
+    const existingPatients = await storage.getAllPatients();
+    if (existingPatients.length > 0) {
+      console.log("Database already seeded with", existingPatients.length, "patients");
+      return;
+    }
+
     console.log("Seeding database with dummy data...");
-    
-    // Add patients
-    const patient1 = await storage.createPatient({
-      firstName: "Brooklyn",
-      lastName: "Simmons", 
-      gender: "M",
-      dateOfBirth: "1995-03-18",
-      phone: "555-1234",
-      email: "brooklyn@example.com"
-    });
 
-    const patient2 = await storage.createPatient({
-      firstName: "Anthony",
-      lastName: "Johnson",
-      gender: "M", 
-      dateOfBirth: "1997-03-18",
-      phone: "555-5678",
-      email: "anthony@example.com"
-    });
-
-    const patient3 = await storage.createPatient({
-      firstName: "Sarah",
-      lastName: "Miller",
-      gender: "F",
-      dateOfBirth: "1987-03-18", 
-      phone: "555-9012",
-      email: "sarah@example.com"
-    });
-
-    // Add appointments
-    await storage.createAppointment({
-      patientId: patient1.patientId,
-      appointmentType: "Allergy Testing",
-      appointmentDate: "2024-08-16",
-      appointmentTime: "10:30"
-    });
-
-    await storage.createAppointment({
-      patientId: patient2.patientId,
-      appointmentType: "Routine Lab Tests", 
-      appointmentDate: "2024-08-16",
-      appointmentTime: "10:00"
-    });
-
-    await storage.createAppointment({
-      patientId: patient3.patientId,
-      appointmentType: "Chronic Disease Management",
-      appointmentDate: "2024-08-15", 
-      appointmentTime: "15:00"
-    });
-
-    // Add metrics
+    // Seed metrics
     await storage.updateMetrics({
       totalPatients: 579,
       totalAppointments: 54,
@@ -488,22 +397,74 @@ export async function seedDatabase(storage: IStorage) {
       patientGrowth: "+15%",
       appointmentGrowth: "+10%",
       incomeGrowth: "+28%",
-      treatmentGrowth: "+12%"
+      treatmentGrowth: "+12%",
     });
 
-    // Add chart data
-    const chartItems = [
-      { month: "Jan", hospitalizedPatients: 100, outpatients: 80, chronicPatients: 25, preventiveVisits: 120, emergencyVisits: 15 },
-      { month: "Feb", hospitalizedPatients: 120, outpatients: 90, chronicPatients: 30, preventiveVisits: 130, emergencyVisits: 18 },
-      { month: "Mar", hospitalizedPatients: 115, outpatients: 70, chronicPatients: 28, preventiveVisits: 110, emergencyVisits: 12 }
+    // Seed chart data
+    const chartDataItems = [
+      { month: "Jan", hospitalizedPatients: 100, outpatients: 80 },
+      { month: "Feb", hospitalizedPatients: 120, outpatients: 90 },
+      { month: "Mar", hospitalizedPatients: 115, outpatients: 70 },
+      { month: "Apr", hospitalizedPatients: 140, outpatients: 130 },
+      { month: "May", hospitalizedPatients: 180, outpatients: 150 },
+      { month: "Jun", hospitalizedPatients: 130, outpatients: 98 },
     ];
 
-    for (const item of chartItems) {
+    for (const item of chartDataItems) {
       await storage.createChartData(item);
     }
 
-    console.log("Database seeded successfully!");
+    // Seed 10 patients as requested
+    const patientData = [
+      { name: "Brooklyn Simmons", gender: "Male", dateOfBirth: "1995-03-18", department: "Cardiology", patientId: "#OMT23AA", avatar: "BS" },
+      { name: "Anthony Johnson", gender: "Male", dateOfBirth: "1997-03-18", department: "Cardiology", patientId: "#AT456BB", avatar: "AJ" },
+      { name: "Sarah Miller Olivia", gender: "Female", dateOfBirth: "1987-03-18", department: "Oncology", patientId: "#EA789CC", avatar: "SO" },
+      { name: "Courtney Henry", gender: "Female", dateOfBirth: "1992-07-22", department: "Dermatology", patientId: "#CH890DD", avatar: "CH" },
+      { name: "Esther Howard", gender: "Female", dateOfBirth: "1989-11-15", department: "Neurology", patientId: "#EH123EE", avatar: "EH" },
+      { name: "Arlene McCoy", gender: "Female", dateOfBirth: "1993-05-08", department: "Pediatrics", patientId: "#AM456FF", avatar: "AM" },
+      { name: "Jane Cooper", gender: "Female", dateOfBirth: "1985-12-03", department: "Emergency", patientId: "#JC789GG", avatar: "JC" },
+      { name: "Robert Fox", gender: "Male", dateOfBirth: "1991-02-28", department: "Orthopedics", patientId: "#RF012HH", avatar: "RF" },
+      { name: "Jenny Wilson", gender: "Female", dateOfBirth: "1994-08-17", department: "Gynecology", patientId: "#JW345II", avatar: "JW" },
+      { name: "Kristin Watson", gender: "Female", dateOfBirth: "1990-10-12", department: "Psychiatry", patientId: "#KW678JJ", avatar: "KW" }
+    ];
+
+    const createdPatients = [];
+    for (const patient of patientData) {
+      const created = await storage.createPatient({
+        ...patient,
+        avatar: patient.avatar || null
+      });
+      createdPatients.push(created);
+    }
+
+    // Seed appointments with references to created patients
+    const appointmentData = [
+      { patientId: createdPatients[0].id, patientName: "Brooklyn Simmons", appointmentType: "Allergy Testing", appointmentDate: "2024-08-16", appointmentTime: "10:30", status: "scheduled" },
+      { patientId: createdPatients[3].id, patientName: "Courtney Henry", appointmentType: "Routine Lab Tests", appointmentDate: "2024-08-16", appointmentTime: "10:00", status: "scheduled" },
+      { patientId: createdPatients[2].id, patientName: "Sarah Miller Olivia", appointmentType: "Chronic Disease Management", appointmentDate: "2024-08-15", appointmentTime: "15:00", status: "scheduled" },
+      { patientId: createdPatients[4].id, patientName: "Esther Howard", appointmentType: "Allergy Testing", appointmentDate: "2024-08-15", appointmentTime: "14:00", status: "scheduled" },
+      { patientId: createdPatients[5].id, patientName: "Arlene McCoy", appointmentType: "Routine Lab Tests", appointmentDate: "2024-08-15", appointmentTime: "11:30", status: "scheduled" },
+      { patientId: createdPatients[6].id, patientName: "Jane Cooper", appointmentType: "Acute Illness", appointmentDate: "2024-08-15", appointmentTime: "10:00", status: "scheduled" },
+      { patientId: createdPatients[7].id, patientName: "Robert Fox", appointmentType: "Surgery Consultation", appointmentDate: "2024-08-17", appointmentTime: "09:00", status: "scheduled" },
+      { patientId: createdPatients[8].id, patientName: "Jenny Wilson", appointmentType: "Routine Checkup", appointmentDate: "2024-08-17", appointmentTime: "14:30", status: "scheduled" },
+      { patientId: createdPatients[9].id, patientName: "Kristin Watson", appointmentType: "Mental Health Assessment", appointmentDate: "2024-08-18", appointmentTime: "11:00", status: "scheduled" },
+      { patientId: createdPatients[1].id, patientName: "Anthony Johnson", appointmentType: "Cardiology Follow-up", appointmentDate: "2024-08-18", appointmentTime: "16:00", status: "scheduled" }
+    ];
+
+    for (const appointment of appointmentData) {
+      await storage.createAppointment({
+        ...appointment,
+        status: appointment.status || null
+      });
+    }
+
+    console.log(`Storage seeded successfully with ${patientData.length} patients and ${appointmentData.length} appointments!`);
   } catch (error) {
     console.error("Error seeding storage:", error);
   }
 }
+
+// Initialize storage and seed data after a small delay to ensure server is ready
+setTimeout(() => {
+  seedDatabase().catch(console.error);
+}, 100);
