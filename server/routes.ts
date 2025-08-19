@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema, insertTransactionSchema } from "@shared/schema";
+import { insertPatientSchema, insertAppointmentSchema, insertMetricsSchema, insertChartDataSchema, insertTransactionSchema, insertBillingSchema } from "@shared/schema";
 import aiRoutes from "./ai-routes";
 import { initializeHealthcareAgent } from "./ai-agent-deepseek";
 import { AIAnalyticsEngine } from "./ai-analytics";
@@ -324,6 +324,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete transaction" });
+    }
+  });
+
+  // Billing routes
+  app.get("/api/billing", async (req, res) => {
+    try {
+      const billingRecords = await storage.getAllBilling();
+      res.json(billingRecords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch billing records" });
+    }
+  });
+
+  app.get("/api/billing/:id", async (req, res) => {
+    try {
+      const billing = await storage.getBilling(req.params.id);
+      if (!billing) {
+        return res.status(404).json({ message: "Billing record not found" });
+      }
+      res.json(billing);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch billing record" });
+    }
+  });
+
+  app.post("/api/billing", async (req, res) => {
+    try {
+      const validatedData = insertBillingSchema.parse(req.body);
+      const billing = await storage.createBilling(validatedData);
+      res.status(201).json(billing);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid billing data" });
+    }
+  });
+
+  app.put("/api/billing/:id", async (req, res) => {
+    try {
+      const billing = await storage.getBilling(req.params.id);
+      if (!billing) {
+        return res.status(404).json({ message: "Billing record not found" });
+      }
+      const validatedData = insertBillingSchema.parse(req.body);
+      const updatedBilling = await storage.updateBilling(req.params.id, validatedData);
+      res.json(updatedBilling);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid billing data" });
+    }
+  });
+
+  app.delete("/api/billing/:id", async (req, res) => {
+    try {
+      const billing = await storage.getBilling(req.params.id);
+      if (!billing) {
+        return res.status(404).json({ message: "Billing record not found" });
+      }
+      await storage.deleteBilling(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete billing record" });
     }
   });
 

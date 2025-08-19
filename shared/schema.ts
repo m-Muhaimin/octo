@@ -11,6 +11,19 @@ export const patients = pgTable("patients", {
   department: text("department").notNull(),
   patientId: text("patient_id").notNull().unique(),
   avatar: text("avatar"),
+  phoneNumber: text("phone_number"),
+  email: text("email"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  emergencyContactName: text("emergency_contact_name"),
+  emergencyContactPhone: text("emergency_contact_phone"),
+  insuranceProvider: text("insurance_provider"),
+  insurancePolicyNumber: text("insurance_policy_number"),
+  primaryCarePhysician: text("primary_care_physician"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const appointments = pgTable("appointments", {
@@ -45,7 +58,9 @@ export const chartData = pgTable("chart_data", {
 
 export const transactions = pgTable("transactions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  patientId: text("patient_id").notNull(),
+  patientId: varchar("patient_id").references(() => patients.id).notNull(),
+  appointmentId: varchar("appointment_id").references(() => appointments.id),
+  billingId: varchar("billing_id"),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   type: text("type").notNull(), // payment, refund, charge
   status: text("status").notNull().default("pending"), // pending, completed, overdue, failed
@@ -53,6 +68,30 @@ export const transactions = pgTable("transactions", {
   paymentMethod: text("payment_method").notNull(), // cash, card, insurance, bank_transfer
   transactionDate: timestamp("transaction_date").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const billing = pgTable("billing", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").references(() => patients.id).notNull(),
+  appointmentId: varchar("appointment_id").references(() => appointments.id),
+  invoiceNumber: text("invoice_number").notNull().unique(),
+  serviceCode: text("service_code").notNull(), // CPT codes
+  serviceDescription: text("service_description").notNull(),
+  providerId: text("provider_id").notNull(),
+  providerName: text("provider_name").notNull(),
+  department: text("department").notNull(),
+  serviceDate: date("service_date").notNull(),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  insuranceAmount: decimal("insurance_amount", { precision: 10, scale: 2 }).default("0.00"),
+  patientAmount: decimal("patient_amount", { precision: 10, scale: 2 }).notNull(),
+  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).default("0.00"),
+  outstandingAmount: decimal("outstanding_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // pending, paid, partially_paid, overdue, cancelled
+  insuranceClaimId: text("insurance_claim_id"),
+  insuranceStatus: text("insurance_status").default("pending"), // pending, approved, denied, processed
+  dueDate: date("due_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertPatientSchema = createInsertSchema(patients).omit({
@@ -79,6 +118,12 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   transactionDate: z.string().optional().transform((val) => val ? new Date(val) : new Date()),
 });
 
+export const insertBillingSchema = createInsertSchema(billing).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Patient = typeof patients.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
@@ -89,6 +134,8 @@ export type InsertChartData = z.infer<typeof insertChartDataSchema>;
 export type ChartData = typeof chartData.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+export type InsertBilling = z.infer<typeof insertBillingSchema>;
+export type Billing = typeof billing.$inferSelect;
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
