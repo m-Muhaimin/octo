@@ -13,6 +13,7 @@ import Transactions from "@/pages/transactions";
 import Settings from "@/pages/settings";
 import PatientScheduling from "@/components/patient-scheduling";
 import AIDashboard from "@/pages/agent-dashboard";
+import AIAgentChat from "@/pages/ai-agent-chat";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
 import Header from "@/components/header";
@@ -56,6 +57,7 @@ function AppContent() {
             <Route path="/transactions" component={Transactions} />
             <Route path="/settings" component={Settings} />
             <Route path="/ai-agent" component={PatientScheduling} />
+            <Route path="/ai-chat" component={AIAgentChat} />
             <Route path="/agent-overview" component={AIDashboard} />
             <Route component={NotFound} />
           </Switch>

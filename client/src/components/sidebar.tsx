@@ -22,11 +22,6 @@ import UserMenu from "@/components/modals/user-menu";
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  navigationItems: {
-    icon: any;
-    label: string;
-    path: string | null;
-  }[];
 }
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -39,6 +34,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
     { icon: MessageSquare, label: "Messages", path: "/messages" },
     { icon: Calendar, label: "Appointments", path: "/appointments" },
     { icon: Bot, label: "AI Agent", path: "/ai-agent" },
+    { icon: MessageCircle, label: "AI Agent Chat", path: "/ai-chat" },
     { icon: FileText, label: "Billing", path: "/billing" },
     { icon: CreditCard, label: "Transactions", path: "/transactions" },
   ];
