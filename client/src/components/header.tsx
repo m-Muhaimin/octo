@@ -3,6 +3,7 @@ import { Sun, Bell, Download, Plus, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import CreateModal from "@/components/modals/create-modal";
 import NotificationsModal from "@/components/modals/notifications-modal";
 import Sidebar from "@/components/sidebar";
@@ -16,6 +17,21 @@ interface HeaderProps {
 export default function Header({ onSidebarToggle }: HeaderProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [location] = useLocation();
+
+  // Map routes to page titles
+  const getPageTitle = (path: string) => {
+    const routes = {
+      '/': 'Dashboard',
+      '/patients': 'Patients',
+      '/appointments': 'Appointments',
+      '/billing': 'Billing & Payments',
+      '/analytics': 'Analytics',
+      '/ai-assistant': 'AI Assistant',
+      '/settings': 'Settings'
+    };
+    return routes[path as keyof typeof routes] || 'Medisight';
+  };
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ["/api/patients"],
@@ -31,14 +47,20 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
       return;
     }
 
-    // Create CSV data
-    const csvHeaders = ['Name', 'Gender', 'Date of Birth', 'Department', 'Patient ID'];
+    // Create CSV data with new schema
+    const csvHeaders = ['First Name', 'Last Name', 'Gender', 'Date of Birth', 'Race', 'Ethnicity', 'Primary Language', 'Marital Status', 'Insurance Type', 'Department', 'Patient ID'];
     const csvData = patients.map(patient => [
-      patient.name,
-      patient.gender,
-      patient.dateOfBirth,
-      patient.department,
-      patient.patientId
+      patient.firstName || '',
+      patient.lastName || '',
+      patient.gender || '',
+      patient.dateOfBirth || '',
+      patient.race || '',
+      patient.ethnicity || '',
+      patient.primaryLanguage || '',
+      patient.maritalStatus || '',
+      patient.insuranceType || '',
+      patient.department || '',
+      patient.patientId || ''
     ]);
 
     const csvContent = [
@@ -69,7 +91,9 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
               <Menu className="h-4 w-4 text-text-secondary" />
             </button>
             <div className="flex items-center space-x-2">
-              <h1 className="text-lg font-medium text-text-primary">Page Title</h1>
+              <h1 className="text-lg font-medium text-text-primary" data-testid="page-title">
+                {getPageTitle(location)}
+              </h1>
             </div>
           </div>
           <div className="flex items-center space-x-3">
