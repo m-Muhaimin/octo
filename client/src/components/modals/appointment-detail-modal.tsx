@@ -364,8 +364,24 @@ export default function AppointmentDetailModal({ appointment, open, onOpenChange
                     <Calendar className="w-4 h-4 mr-2" />
                     Reschedule
                   </Button>
-                  <Button variant="outline" size="sm" data-testid="button-mark-completed">
-                    Complete Appointment
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    data-testid="button-mark-completed"
+                    onClick={() => {
+                      const updatedData = {
+                        patientId: appointment.patientId,
+                        patientName: appointment.patientName,
+                        appointmentType: appointment.appointmentType,
+                        appointmentDate: appointment.appointmentDate,
+                        appointmentTime: appointment.appointmentTime,
+                        status: "completed"
+                      };
+                      updateMutation.mutate(updatedData);
+                    }}
+                    disabled={updateMutation.isPending}
+                  >
+                    {updateMutation.isPending ? "Updating..." : "Complete Appointment"}
                   </Button>
                   <Button variant="outline" size="sm" data-testid="button-send-reminder">
                     Send Reminder
