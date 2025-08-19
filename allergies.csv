@@ -1,0 +1,47 @@
+patient_id,allergy,severity,reaction
+2,Latex,Moderate,Rash
+2,Sulfa Drugs,Severe,Swelling
+3,Peanuts,Severe,Anaphylaxis
+4,Latex,Severe,Anaphylaxis
+4,Shellfish,Severe,Anaphylaxis
+5,Aspirin,Severe,Swelling
+6,Shellfish,Moderate,Nausea
+9,Peanuts,Moderate,Nausea
+9,Shellfish,Mild,Anaphylaxis
+10,Latex,Mild,Rash
+10,Peanuts,Severe,Anaphylaxis
+11,Sulfa Drugs,Severe,Swelling
+13,Sulfa Drugs,Severe,Rash
+13,Aspirin,Moderate,Rash
+15,Peanuts,Severe,Rash
+18,Peanuts,Mild,Swelling
+19,Penicillin,Mild,Swelling
+19,Peanuts,Moderate,Swelling
+21,Peanuts,Mild,Anaphylaxis
+21,Penicillin,Moderate,Anaphylaxis
+23,Peanuts,Moderate,Nausea
+23,Latex,Moderate,Nausea
+24,Latex,Severe,Nausea
+24,Aspirin,Mild,Nausea
+25,Peanuts,Severe,Nausea
+25,Sulfa Drugs,Mild,Rash
+26,Peanuts,Moderate,Nausea
+27,Shellfish,Moderate,Swelling
+27,Latex,Mild,Anaphylaxis
+28,Penicillin,Mild,Rash
+28,Peanuts,Moderate,Swelling
+29,Latex,Moderate,Nausea
+31,Aspirin,Mild,Anaphylaxis
+32,Peanuts,Moderate,Rash
+35,Penicillin,Moderate,Anaphylaxis
+35,Aspirin,Severe,Nausea
+36,Shellfish,Mild,Rash
+37,Sulfa Drugs,Moderate,Rash
+37,Aspirin,Moderate,Rash
+39,Latex,Moderate,Rash
+41,Aspirin,Severe,Nausea
+43,Peanuts,Mild,Nausea
+45,Sulfa Drugs,Severe,Anaphylaxis
+45,Shellfish,Moderate,Rash
+46,Peanuts,Mild,Anaphylaxis
+46,Aspirin,Moderate,Rash
