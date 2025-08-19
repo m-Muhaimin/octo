@@ -7,7 +7,10 @@ import ws from "ws";
 
 neonConfig.fetchConnectionCache = true;
 neonConfig.webSocketConstructor = ws;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// Clean up DATABASE_URL by removing surrounding quotes if they exist
+const cleanDatabaseUrl = process.env.DATABASE_URL?.replace(/^"/, '').replace(/"$/, '') || '';
+const pool = new Pool({ connectionString: cleanDatabaseUrl });
 const db = drizzle(pool);
 
 export interface IStorage {
@@ -99,11 +102,14 @@ export class MemStorage implements IStorage {
     // Initialize patients with complete healthcare data
     const patientData = [
       { 
-        name: "Brooklyn Simmons", 
+        patientId: "#BROOKLYNSIMMONS2",
+        firstName: "Brooklyn", 
+        lastName: "Simmons",
         gender: "Male", 
-        dateOfBirth: "1995-03-18", 
+        dateOfBirth: "1995-03-18",
+        race: "White",
+        ethnicity: "Non-Hispanic", 
         department: "Cardiology", 
-        patientId: "#OMT23AA", 
         avatar: "BS",
         phoneNumber: "(555) 123-4567",
         email: "brooklyn.simmons@email.com",
@@ -111,6 +117,10 @@ export class MemStorage implements IStorage {
         city: "New York",
         state: "NY",
         zipCode: "10001",
+        primaryLanguage: "English",
+        maritalStatus: "Single", 
+        insuranceType: "PPO",
+        lastVisitDate: "2023-05-01",
         emergencyContactName: "Patricia Simmons",
         emergencyContactPhone: "(555) 123-4568",
         insuranceProvider: "Blue Cross Blue Shield",
@@ -118,11 +128,14 @@ export class MemStorage implements IStorage {
         primaryCarePhysician: "Dr. Smith"
       },
       { 
-        name: "Anthony Johnson", 
+        patientId: "#AT456BB",
+        firstName: "Anthony", 
+        lastName: "Johnson",
         gender: "Male", 
         dateOfBirth: "1997-03-18", 
+        race: "White",
+        ethnicity: "Non-Hispanic",
         department: "Cardiology", 
-        patientId: "#AT456BB", 
         avatar: "AJ",
         phoneNumber: "(555) 234-5678",
         email: "anthony.johnson@email.com",
@@ -130,6 +143,10 @@ export class MemStorage implements IStorage {
         city: "Los Angeles",
         state: "CA",
         zipCode: "90210",
+        primaryLanguage: "English",
+        maritalStatus: "Single", 
+        insuranceType: "PPO",
+        lastVisitDate: "2023-04-15",
         emergencyContactName: "Mary Johnson",
         emergencyContactPhone: "(555) 234-5679",
         insuranceProvider: "Aetna",
@@ -137,11 +154,14 @@ export class MemStorage implements IStorage {
         primaryCarePhysician: "Dr. Wilson"
       },
       { 
-        name: "Sarah Miller Olivia", 
+        patientId: "#EA789CC",
+        firstName: "Sarah Miller", 
+        lastName: "Olivia",
         gender: "Female", 
         dateOfBirth: "1987-03-18", 
+        race: "White",
+        ethnicity: "Non-Hispanic",
         department: "Oncology", 
-        patientId: "#EA789CC", 
         avatar: "SO",
         phoneNumber: "(555) 345-6789",
         email: "sarah.miller@email.com",
@@ -149,6 +169,10 @@ export class MemStorage implements IStorage {
         city: "Chicago",
         state: "IL",
         zipCode: "60601",
+        primaryLanguage: "English",
+        maritalStatus: "Married", 
+        insuranceType: "HMO",
+        lastVisitDate: "2023-03-20",
         emergencyContactName: "David Miller",
         emergencyContactPhone: "(555) 345-6790",
         insuranceProvider: "United Healthcare",

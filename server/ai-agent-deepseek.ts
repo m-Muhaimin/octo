@@ -338,7 +338,8 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
     // Check if patient already exists
     const existingPatients = await this.storage.getAllPatients();
     const existingPatient = existingPatients.find((p: Patient) => 
-      p.name.toLowerCase() === patientName.toLowerCase()
+      p.name?.toLowerCase() === patientName.toLowerCase() ||
+      `${p.firstName} ${p.lastName}`.toLowerCase() === patientName.toLowerCase()
     );
     
     if (existingPatient) {
@@ -348,8 +349,12 @@ Be empathetic, professional, and efficient. Ask only necessary clarifying questi
     
     // Create new patient
     this.addAuditStep(sessionId, 'patient_creation', 'in_progress');
+    const [firstName, ...lastNameParts] = patientName.split(' ');
+    const lastName = lastNameParts.join(' ') || 'Unknown';
+    
     const newPatientData: InsertPatient = {
-      name: patientName,
+      firstName: firstName,
+      lastName: lastName,
       gender: 'Unknown', // Would collect during registration
       dateOfBirth: '1990-01-01', // Default - would collect during registration
       department: context.specialty || 'General Medicine',
