@@ -40,6 +40,19 @@ export default function AppointmentList({ appointments }: AppointmentListProps) 
     return colors[index];
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "scheduled":
+        return "bg-blue-100 text-blue-800";
+      case "no show":
+        return "bg-yellow-100 text-yellow-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
@@ -109,7 +122,12 @@ export default function AppointmentList({ appointments }: AppointmentListProps) 
                   {appointment.appointmentType}
                 </p>
               </div>
-              <div className="text-right flex-shrink-0 flex items-center space-x-2">
+              <div className="text-right flex-shrink-0 flex items-center space-x-3">
+                <div className="text-center">
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status || "scheduled")}`}>
+                    {appointment.status || "scheduled"}
+                  </div>
+                </div>
                 <div>
                   <p className="text-xs text-text-secondary" data-testid={`text-appointment-date-${index}`}>
                     {formatDate(appointment.appointmentDate)}
@@ -125,7 +143,7 @@ export default function AppointmentList({ appointments }: AppointmentListProps) 
                     e.stopPropagation();
                     handleViewAppointment(appointment);
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                  className="hover:bg-gray-100 p-1 h-auto"
                   data-testid={`button-view-appointment-${index}`}
                 >
                   <Eye className="w-4 h-4" />

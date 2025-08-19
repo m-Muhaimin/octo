@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import CreateModal from "@/components/modals/create-modal";
+import AppointmentDetailModal from "@/components/modals/appointment-detail-modal";
 import type { Appointment, Patient } from "@shared/schema";
 
 export default function Appointments() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const { data: appointments, isLoading: appointmentsLoading } = useQuery<Appointment[]>({
     queryKey: ["/api/appointments"],
@@ -60,15 +63,18 @@ export default function Appointments() {
     switch (status?.toLowerCase()) {
       case 'scheduled':
         return 'bg-blue-100 text-blue-800';
+      case 'no show':
+        return 'bg-yellow-100 text-yellow-800';
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'in-progress':
-        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setShowDetailModal(true);
   };
 
   const filteredAppointments = appointments?.filter(appointment => {
@@ -150,8 +156,8 @@ export default function Appointments() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="scheduled">Scheduled</SelectItem>
+            <SelectItem value="no show">No Show</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
         <Select value={filterDate} onValueChange={setFilterDate}>
@@ -199,7 +205,11 @@ export default function Appointments() {
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status || 'scheduled')}`}>
                       {appointment.status || 'scheduled'}
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleViewDetails(appointment)}
+                    >
                       View Details
                     </Button>
                   </div>
@@ -216,6 +226,11 @@ export default function Appointments() {
       )}
 
       <CreateModal open={showCreateModal} onOpenChange={setShowCreateModal} />
+      <AppointmentDetailModal 
+        appointment={selectedAppointment}
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+      />
     </div>
   );
 }

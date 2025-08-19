@@ -141,6 +141,22 @@ export default function CreateAppointmentModal({ open, onOpenChange }: CreateApp
               required
             />
           </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status || "scheduled"}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="no show">No Show</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
