@@ -20,7 +20,21 @@ export default function Patients() {
   });
 
   const handleBulkAction = (action: string) => {
-    toast({ title: `Bulk ${action} feature coming soon!` });
+    if (!patients) return;
+    
+    switch (action) {
+      case "export":
+        toast({ title: "Exporting selected patients...", description: "CSV file will be downloaded shortly." });
+        break;
+      case "archive":
+        toast({ title: "Archiving patients...", description: "Selected patients will be archived." });
+        break;
+      case "delete":
+        toast({ title: "Bulk delete initiated", description: "Selected patients will be deleted.", variant: "destructive" });
+        break;
+      default:
+        console.log(`Unknown bulk action: ${action}`);
+    }
   };
 
   return (

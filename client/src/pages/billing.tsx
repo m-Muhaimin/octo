@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 import CreateInvoiceModal from "@/components/modals/create-invoice-modal";
 import type { Transaction } from "@shared/schema";
 
@@ -73,6 +74,22 @@ export default function Billing() {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handleViewRecord = (record: BillingRecord) => {
+    toast({ 
+      title: "View Record", 
+      description: `Opening billing record ${record.id} for ${record.patientName}`
+    });
+    // TODO: Implement billing record detail modal
+  };
+
+  const handleCollectPayment = (record: BillingRecord) => {
+    toast({ 
+      title: "Collect Payment", 
+      description: `Processing payment collection for ${record.patientName} - Amount: $${record.amount.toFixed(2)}`
+    });
+    // TODO: Implement payment collection flow
   };
 
   const filteredRecords = billingRecords.filter(record => {
@@ -271,11 +288,21 @@ export default function Billing() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewRecord(record)}
+                          data-testid={`button-view-record-${record.id}`}
+                        >
                           View
                         </Button>
                         {record.status !== 'paid' && (
-                          <Button size="sm" className="bg-medisight-teal hover:bg-medisight-dark-teal">
+                          <Button 
+                            size="sm" 
+                            className="bg-medisight-teal hover:bg-medisight-dark-teal"
+                            onClick={() => handleCollectPayment(record)}
+                            data-testid={`button-collect-payment-${record.id}`}
+                          >
                             Collect
                           </Button>
                         )}

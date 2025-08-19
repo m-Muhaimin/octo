@@ -24,9 +24,15 @@ interface PatientDetailModalProps {
 export default function PatientDetailModal({ patient, open, onOpenChange }: PatientDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<InsertPatient>({
-    name: "",
+    firstName: "",
+    lastName: "",
     gender: "Male",
     dateOfBirth: "",
+    race: "",
+    ethnicity: "",
+    primaryLanguage: "",
+    maritalStatus: "",
+    insuranceType: "",
     department: "",
     patientId: "",
     avatar: null
@@ -38,9 +44,15 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
   useState(() => {
     if (patient) {
       setEditData({
-        name: patient.name,
+        firstName: patient.firstName || "",
+        lastName: patient.lastName || "",
         gender: patient.gender,
         dateOfBirth: patient.dateOfBirth,
+        race: patient.race || "",
+        ethnicity: patient.ethnicity || "",
+        primaryLanguage: patient.primaryLanguage || "",
+        maritalStatus: patient.maritalStatus || "",
+        insuranceType: patient.insuranceType || "",
         department: patient.department,
         patientId: patient.patientId,
         avatar: patient.avatar
@@ -96,13 +108,24 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
     deleteMutation.mutate();
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (patient: Patient) => {
+    if (patient.firstName && patient.lastName) {
+      return (patient.firstName[0] + patient.lastName[0]).toUpperCase();
+    }
+    // Fallback for old data with name field
+    const name = (patient as any).name || 'U';
     return name
       .split(' ')
-      .map(word => word[0])
+      .map((word: string) => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const getPatientName = (patient: Patient) => {
+    return patient.firstName && patient.lastName 
+      ? `${patient.firstName} ${patient.lastName}` 
+      : (patient as any).name || 'Unknown Patient';
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -207,20 +230,31 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                 <div className="flex flex-col items-center text-center space-y-4">
                   <Avatar className="w-24 h-24">
                     <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                      {getInitials(patient.name)}
+                      {getInitials(patient)}
                     </AvatarFallback>
                   </Avatar>
                   
                   {isEditing ? (
                     <div className="w-full space-y-4">
-                      <div>
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                          id="name"
-                          value={editData.name}
-                          onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-                          data-testid="input-edit-name"
-                        />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input
+                            id="firstName"
+                            value={editData.firstName}
+                            onChange={(e) => setEditData(prev => ({ ...prev, firstName: e.target.value }))}
+                            data-testid="input-edit-first-name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            value={editData.lastName}
+                            onChange={(e) => setEditData(prev => ({ ...prev, lastName: e.target.value }))}
+                            data-testid="input-edit-last-name"
+                          />
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="patientId">Patient ID</Label>
@@ -236,7 +270,7 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                     <>
                       <div>
                         <h3 className="text-lg font-semibold" data-testid="text-patient-name">
-                          {patient.name}
+                          {getPatientName(patient)}
                         </h3>
                         <p className="text-sm text-gray-500" data-testid="text-patient-id">
                           {patient.patientId}
@@ -290,7 +324,7 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                     <div className="md:col-span-2">
                       <Label htmlFor="department">Department</Label>
                       <Select
-                        value={editData.department}
+                        value={editData.department || ""}
                         onValueChange={(value) => setEditData(prev => ({ ...prev, department: value }))}
                       >
                         <SelectTrigger data-testid="select-edit-department">

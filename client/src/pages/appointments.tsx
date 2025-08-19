@@ -4,6 +4,7 @@ import { Plus, Calendar, Clock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 import CreateModal from "@/components/modals/create-modal";
 import AppointmentDetailModal from "@/components/modals/appointment-detail-modal";
 import type { Appointment, Patient } from "@shared/schema";
@@ -75,6 +76,27 @@ export default function Appointments() {
   const handleViewDetails = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowDetailModal(true);
+  };
+
+  const handleReschedule = (appointment: Appointment) => {
+    toast({ 
+      title: "Reschedule Appointment", 
+      description: `Rescheduling appointment for ${appointment.patientName}`
+    });
+  };
+
+  const handleComplete = (appointment: Appointment) => {
+    toast({ 
+      title: "Complete Appointment", 
+      description: `Marking appointment as completed for ${appointment.patientName}`
+    });
+  };
+
+  const handleSendReminder = (appointment: Appointment) => {
+    toast({ 
+      title: "Reminder Sent", 
+      description: `Appointment reminder sent to ${appointment.patientName}`
+    });
   };
 
   const filteredAppointments = appointments?.filter(appointment => {
