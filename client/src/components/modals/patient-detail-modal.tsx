@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X, Edit, Trash2, Save, Calendar, MapPin, Phone, Mail, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,29 +24,49 @@ interface PatientDetailModalProps {
 export default function PatientDetailModal({ patient, open, onOpenChange }: PatientDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<InsertPatient>({
-    name: "",
+    firstName: "",
+    lastName: "",
     gender: "Male",
     dateOfBirth: "",
-    department: "",
-    patientId: "",
-    avatar: null
+    phone: null,
+    email: null,
+    address: null,
+    city: null,
+    state: null,
+    zipCode: null,
+    race: null,
+    ethnicity: null,
+    primaryLanguage: null,
+    maritalStatus: null,
+    insuranceType: null,
+    medicalRecordNumber: null
   });
 
   const queryClient = useQueryClient();
 
   // Initialize edit data when patient changes
-  useState(() => {
+  useEffect(() => {
     if (patient) {
       setEditData({
-        name: patient.name,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
         gender: patient.gender,
         dateOfBirth: patient.dateOfBirth,
-        department: patient.department,
-        patientId: patient.patientId,
-        avatar: patient.avatar
+        phone: patient.phone,
+        email: patient.email,
+        address: patient.address,
+        city: patient.city,
+        state: patient.state,
+        zipCode: patient.zipCode,
+        race: patient.race,
+        ethnicity: patient.ethnicity,
+        primaryLanguage: patient.primaryLanguage,
+        maritalStatus: patient.maritalStatus,
+        insuranceType: patient.insuranceType,
+        medicalRecordNumber: patient.medicalRecordNumber
       });
     }
-  });
+  }, [patient]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertPatient) => {
@@ -96,13 +116,9 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
     deleteMutation.mutate();
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const getInitials = (firstName: string, lastName: string) => {
+    if (!firstName || !lastName) return '??';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase();
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -158,7 +174,7 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Patient</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete {patient.name}? This action cannot be undone.
+                        Are you sure you want to delete {patient.firstName} {patient.lastName}? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -207,28 +223,37 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                 <div className="flex flex-col items-center text-center space-y-4">
                   <Avatar className="w-24 h-24">
                     <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                      {getInitials(patient.name)}
+                      {getInitials(patient.firstName, patient.lastName)}
                     </AvatarFallback>
                   </Avatar>
                   
                   {isEditing ? (
                     <div className="w-full space-y-4">
                       <div>
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="firstName">First Name</Label>
                         <Input
-                          id="name"
-                          value={editData.name}
-                          onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-                          data-testid="input-edit-name"
+                          id="firstName"
+                          value={editData.firstName}
+                          onChange={(e) => setEditData(prev => ({ ...prev, firstName: e.target.value }))}
+                          data-testid="input-edit-first-name"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="patientId">Patient ID</Label>
+                        <Label htmlFor="lastName">Last Name</Label>
                         <Input
-                          id="patientId"
-                          value={editData.patientId}
-                          onChange={(e) => setEditData(prev => ({ ...prev, patientId: e.target.value }))}
-                          data-testid="input-edit-patient-id"
+                          id="lastName"
+                          value={editData.lastName}
+                          onChange={(e) => setEditData(prev => ({ ...prev, lastName: e.target.value }))}
+                          data-testid="input-edit-last-name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="medicalRecordNumber">Medical Record #</Label>
+                        <Input
+                          id="medicalRecordNumber"
+                          value={editData.medicalRecordNumber || ""}
+                          onChange={(e) => setEditData(prev => ({ ...prev, medicalRecordNumber: e.target.value }))}
+                          data-testid="input-edit-mrn"
                         />
                       </div>
                     </div>
@@ -236,10 +261,10 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                     <>
                       <div>
                         <h3 className="text-lg font-semibold" data-testid="text-patient-name">
-                          {patient.name}
+                          {patient.firstName} {patient.lastName}
                         </h3>
                         <p className="text-sm text-gray-500" data-testid="text-patient-id">
-                          {patient.patientId}
+                          MRN: {patient.medicalRecordNumber || 'N/A'}
                         </p>
                       </div>
                       <Badge variant="secondary" data-testid="badge-patient-status">
@@ -287,27 +312,34 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                         data-testid="input-edit-dob"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={editData.phone || ""}
+                        onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                        data-testid="input-edit-phone"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={editData.email || ""}
+                        onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                        data-testid="input-edit-email"
+                      />
+                    </div>
                     <div className="md:col-span-2">
-                      <Label htmlFor="department">Department</Label>
-                      <Select
-                        value={editData.department}
-                        onValueChange={(value) => setEditData(prev => ({ ...prev, department: value }))}
-                      >
-                        <SelectTrigger data-testid="select-edit-department">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Cardiology">Cardiology</SelectItem>
-                          <SelectItem value="Neurology">Neurology</SelectItem>
-                          <SelectItem value="Oncology">Oncology</SelectItem>
-                          <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                          <SelectItem value="Dermatology">Dermatology</SelectItem>
-                          <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                          <SelectItem value="Emergency">Emergency</SelectItem>
-                          <SelectItem value="Gynecology">Gynecology</SelectItem>
-                          <SelectItem value="Psychiatry">Psychiatry</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="insuranceType">Insurance Type</Label>
+                      <Input
+                        id="insuranceType"
+                        value={editData.insuranceType || ""}
+                        onChange={(e) => setEditData(prev => ({ ...prev, insuranceType: e.target.value }))}
+                        data-testid="input-edit-insurance"
+                      />
                     </div>
                   </div>
                 ) : (
@@ -334,11 +366,29 @@ export default function PatientDetailModal({ patient, open, onOpenChange }: Pati
                     </div>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
+                        <Phone className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium">Phone</p>
+                          <p className="text-sm text-gray-600" data-testid="text-patient-phone">
+                            {patient.phone || 'Not provided'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium">Email</p>
+                          <p className="text-sm text-gray-600" data-testid="text-patient-email">
+                            {patient.email || 'Not provided'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
                         <MapPin className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="text-sm font-medium">Department</p>
-                          <p className="text-sm text-gray-600" data-testid="text-patient-department">
-                            {patient.department}
+                          <p className="text-sm font-medium">Insurance</p>
+                          <p className="text-sm text-gray-600" data-testid="text-patient-insurance">
+                            {patient.insuranceType || 'Not specified'}
                           </p>
                         </div>
                       </div>
